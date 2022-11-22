@@ -1,0 +1,130 @@
+start session
+    #size = 20, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
+    %epsilon = 0
+    maxdist = 10
+    safezonedist = 0
+end session
+
+start session
+    #size = 200, 600, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000
+    %epsilon = 0
+    maxdist = 100
+    safezonedist = 0
+end session
+
+start session
+    #size = 2000, 4000, 8000, 16000, 32000
+    %epsilon = 0
+    maxdist = 1000
+    safezonedist = 0
+end session
+
+
+
+start session
+    #size = 100
+    %epsilon = 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+    maxdist = 10
+    safezonedist = 0
+end session
+
+start session
+    #size = 1000
+    %epsilon = 0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0
+    maxdist = 100
+    safezonedist = 0
+end session
+
+start session
+    #size = 10000
+    %epsilon = 0.0, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0
+    maxdist = 1000
+    safezonedist = 0
+end session
+
+
+
+start session
+    #size = 1000
+    %epsilon = 0.5
+    maxdist = 5, 10, 20, 40, 80, 160, 320, 640, 999
+    safezonedist = 0
+end session
+
+start session
+    #size = 10000
+    %epsilon = 0.5
+    maxdist = 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 9999
+    safezonedist = 0
+end session
+
+
+
+start session
+    #size = 1000
+    %epsilon = 0
+    maxdist = 5, 10, 18, 32, 28, 104, 188, 340, 612, 999
+    safezonedist = 0
+end session
+
+start session
+    #size = 5000
+    %epsilon = 0
+    maxdist = 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 4999
+    safezonedist = 0
+end session
+
+start session
+    #size = 10000
+    %epsilon = 0
+    maxdist = 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 9999
+    safezonedist = 0
+end session
+
+
+
+start session
+    #size = 1000
+    %epsilon = 0.1
+    maxdist = 100
+    safezonedist = 0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100
+end session
+
+start session
+    #size = 10000
+    %epsilon = 0.1
+    maxdist = 1000
+    safezonedist = 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950, 1000
+end session
+
+
+
+start session
+    #size = 1000
+    %epsilon = 0.1
+    maxdist = 10
+    safezonedist = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+end session
+
+start session
+    #size = 10000
+    %epsilon = 0.1
+    maxdist = 100
+    safezonedist = 0, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100
+end session
+
+
+
+start session
+    #size = 10000
+    %epsilon = 0
+    maxdist = 1000
+    safezonedist = 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
+end session
+
+start session
+    #size = 10000
+    %epsilon = 0
+    maxdist = 100
+    safezonedist = 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+end session
