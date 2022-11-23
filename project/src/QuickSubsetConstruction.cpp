@@ -1,14 +1,13 @@
-/******************************************************************************
- * embedded_subset_construction.hpp
+/*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
+ * QuickSubsetConstruction.cpp
  *
- * Project: TranslatedAutomata
- *
- * File sorgente della classe "QuickSubsetConstruction" che implementa l'algoritmo
- * "Quick Subset Construction" per la traduzione di un automa DFA.
- * Per maggiori informazioni sul funzionamento dell'algoritmo, si veda la documentazione
- * del metodo "run".
- *
- ******************************************************************************/
+ * 
+ * This source file implements the QuickSubsetConstruction class, i.e. the class that implements the Quick Subset Construction algorithm.
+ * The QuickSubsetCOnstruction class is a subclass of the DeterminizationAlgorithm class, and it's the algorithm studied in the paper.
+ */
 
 #include "QuickSubsetConstruction.hpp"
 
@@ -23,10 +22,9 @@
 namespace quicksc {
 
 	/**
-	 * Costruttore vuoto.
-	 * Imposta ogni campo ad un valore nullo. Per eseguire l'algoritmo
-	 * è infatti necessario chiamare il metodo "loadInputs".
-	 * Imposta il nome della classe e l'abbreviazione dell'algoritmo, chiamando il costruttore padre.
+	 * Empty constructor.
+	 * It sets every field to a null value. In order to execute the algorithm it's necessary to call the "loadInputs" method.
+	 * It sets the name of the class and the abbreviation of the algorithm, calling the parent constructor.
 	 */
 	QuickSubsetConstruction::QuickSubsetConstruction(Configurations* configurations)
 	: DeterminizationAlgorithm(QSC_ABBR, QSC_NAME) {
@@ -34,10 +32,9 @@ namespace quicksc {
 	}
 
 	/**
-	 * Distruttore.
-	 * Elimina gli elementi utilizzati internamente all'algoritmo.
-	 * Non elimina gli input (poiché generati all'esterno) e nemmeno il risultato
-	 * finale (poiché ancora usato all'esterno).
+	 * Destructor.
+	 * It deletes the elements used internally by the algorithm. It doesn't delete the inputs (because they are generated outside)
+	 * and it doesn't delete the final result (because it's still used outside).
 	 */
 	QuickSubsetConstruction::~QuickSubsetConstruction() {
 		if (this->m_singularities != NULL) {
@@ -46,13 +43,11 @@ namespace quicksc {
 	}
 
 	/**
-	 * Metodo che pulisce tutte le variabili interne, usate da precedenti esecuzioni dell'algoritmo.
-	 * Viene richiamato all'inizio di runAutomatonTranslation (che inizia la risoluzione di un
-	 * problema di traduzione) e di runAutomatonCheckup (che inizia la risoluzione di un problema
-	 * di determinizzazione).
+	 * Method that cleans all the internal variables, used by previous executions of the algorithm.
+	 * It's called at the beginning of runAutomatonTranslation (that starts the resolution of a
+	 * translation problem) and of runAutomatonCheckup (that starts the resolution of a determinization problem).
 	 */
 	void QuickSubsetConstruction::cleanInternalStatus() {
-		// Rimozione degli eventuali oggetti dell'esecuzione precedente
 		if (this->m_singularities != NULL) {
 			delete this->m_singularities;
 		}
@@ -70,7 +65,7 @@ namespace quicksc {
 	}
 
 	/**
-	 * Definizione delle statistiche utilizzate.
+	 * Definition of the runtime statistics of the algorithm.
 	 */
 	vector<RuntimeStat> QuickSubsetConstruction::getRuntimeStatsList() {
         vector<RuntimeStat> list = DeterminizationAlgorithm::getRuntimeStatsList();
@@ -84,100 +79,97 @@ namespace quicksc {
     }
 
 	/**
-	 * Esegue l'algoritmo QSC sull'automa passato come parametro.
-	 * Restituisce l'automa determinizzato.
+	 * Executes the algorithm on the given inputs.
 	 */
 	Automaton* QuickSubsetConstruction::run(Automaton* nfa) {
 		this->cleanInternalStatus();
 
-		// Acquisizione degli input
+		// Input acquisition
 		DEBUG_ASSERT_NOT_NULL(nfa);
 
-		// Disegno l'NFA originale
+		// Draws the original automaton
 		IF_DEBUG_ACTIVE( AutomataDrawer drawer = AutomataDrawer(nfa) );
 		IF_DEBUG_ACTIVE( std::cout << drawer.asString() << std::endl );
 		DEBUG_WAIT_USER_ENTER();
 
-		// Istanziazione degli oggetti ausiliari
+		// Istanziation of the automaton to be returned
 		this->m_singularities = new SingularityList();
 		Automaton* dfa = new Automaton();
 
-		// Variabili locali ausiliarie
-		map<State*, ConstructedState*> states_map = map<State*, ConstructedState*>(); // Poiché è necessario generare un automa isomorfo a quello originale, questa mappa mantiene la corrispondenza fra gli stati dell'NFA con quelli del DFA.
+		// Local auxiliary variables
+		map<State*, ConstructedState*> states_map = map<State*, ConstructedState*>(); 
+		// Since it's necessary to generate an automaton isomorphic to the original one, 
+		// this map maintains the correspondence between the states of the NFA and the ones of the DFA.
 
 
 		/**************************
-		  PRIMA FASE - CLONAZIONE
+			FIRST PHASE - CLONING
 
-	 	  	Esamino l'automa NON deterministico ed identifico i punti di non determinismo.
-			Genero un automa isomorfo DFA che verrà utilizzato durante la fase di ristrutturaizone.
+			In this phase, the algorithm clones the NFA, creating the DFA.
+			While doing this, it identifies the singularities of the NFA.
 
 		 **************************/
 
-
-
-		// Iterazione su tutti gli stati dell'automa in input per creare gli stati corrispondenti
+		// Iterating on all the states of the input automaton to create the corresponding states
 		for (State* nfa_state : nfa->getStatesVector()) {
 
-			// Creo uno stato copia nel DFA
+			// Creating a copied state in the DFA
+			// The copied state will be a ConstructedState, that is a subclass of the State class.
 			Extension extension;
 			extension.insert(nfa_state);
 			ConstructedState* dfa_state = new ConstructedState(extension);
-			// Lo aggiungo al DFA
 			dfa->addState(dfa_state);
 			dfa_state->setDistance(nfa_state->getDistance());
 
-			// Associo allo stato originale il nuovo stato del DFA, in modo da poterlo ritrovare facilmente
+			// In order to maintain the association, we insert a new couple in the map
 			states_map[nfa_state] = dfa_state;
 
 		}
+		// Once all the states are created, we can start to create the transitions
 
-		// ^ ^ ^
-		// Termino il primo ciclo su tutti gli stati dell'automa, in modo da procedere
-		// solamente quando le associazioni fra gli stati sono complete
-
-		// Iterazione su tutti gli stati dell'automa in input per copiare le transizioni
+		// Iterating on all the states of the input automaton to create the corresponding transitions
 		for (State* nfa_state : nfa->getStatesVector()) {
-			DEBUG_LOG("Considero lo stato %s", nfa_state->getName().c_str());
+			DEBUG_LOG("Considering NFA's state %s", nfa_state->getName().c_str());
 
-			// Viene recuperato lo stato creato in precedenza, associato allo stato dell'automa originale
+			// Retrieve the state created in the previous phase, associated to the state of the original automaton
 			ConstructedState* dfa_state = states_map[nfa_state];
 
-			// Iterazione su tutte le transizioni uscenti dallo stato dell'automa NFA
+			// Iterating over all the transitions outgoing from the NFA's state
 			for (auto &pair : nfa_state->getExitingTransitions()) {
 
-				// Label corrente
+				// Current label
 				string current_label = pair.first;
 
-				// Valore che diventa vero appena la singolarità viene aggiunta. Evita controlli inutili
+				// This value becomes true as soon as the singularity is added. Avoids useless checks
 				bool added_singularity_flag = false;
 
-				// *** SINGOLARITA' CASO 1 *** //
-				// Se lo stato corrente dell'NFA è lo stato iniziale
+				// ***** SINGULARITY of type (1) ***** 
+				// If the state is the initial one, and the label is the empty string, it's a singularity
 				if (nfa->isInitial(nfa_state) && current_label == EPSILON) {
-					DEBUG_LOG("L'automa necessita della eps-singolarità iniziale");
-					// Aggiungo la singolarità con EPSILON transizione, che sarà la prima ad essere processata
+					DEBUG_LOG("The NFA needs a singularity of type (1), i.e. a singularity for the initial state and the epsilon string");
+					// Add the singularity, that will be the first to be processed
 					this->addSingularityToList(dfa_state, current_label);
 					added_singularity_flag = true;
 				}
 
-				// Per tutti gli stati figli raggiunti da transizioni marcate con la label originaria
+				// For all the children states reached by transitions marked with the original label
 				for (State* nfa_child : pair.second) {
 
-					// Escludo il caso con epsilon-transizione ad anello
+					// Exclude the case with looping epsilon-transition
 					if (nfa_child == nfa_state && current_label == EPSILON) {
 						continue;
 					}
 
-					// Inserisco (a prescindere dalla label) la transizione dell'NFA nell'automa DFA copia
+					// Inserting the transition of the NFA in the copy of the DFA
+					// The transition is marked with the same label, whatever it is
 					State* dfa_child = states_map[nfa_child];
 					dfa_state->connectChild(current_label, dfa_child);
 
-					// *** SINGOLARITA' CASO 2 *** //
-					// Se la transizione ha una epsilon-transizione uscente dal nodo figlio, e non è una eps-transizione
+					// ***** SINGULARITY of type (2) ***** 
+					// If the transition has an epsilon-transition outgoing from the child node, and it's not an epsilon-transition
 					if (!added_singularity_flag && pair.first != EPSILON && nfa_child->hasExitingTransition(EPSILON)) {
 
-						// Devo tuttavia verificare che non si tratti di una eps-transizione ad anello
+						// I need to check that it's not a looping epsilon-transition
 						bool is_not_epsilon_ring = false;
 						for (State* nfa_grandchild : nfa_child->getChildren(EPSILON)) {
 							if (nfa_grandchild != nfa_child) {
@@ -186,139 +178,96 @@ namespace quicksc {
 							}
 						}
 
-						// Ora che sono sicuro, aggiungo la singolarità
+						// If it's not a looping epsilon-transition, it's a singularity
 						if (is_not_epsilon_ring) {
 							this->addSingularityToList(dfa_state, current_label);
 						}
 					}
 
-				} // Iterazione sui figli
+				} // Iterating over all the children states reached by transitions marked with the original label
 
-				// *** SINGOLARITA' CASO 2 *** //
-				// Verifico se gli stati raggiunti dalle transizioni marcate con quest'etichetta sono più di uno; in tal caso aggiungo una singolarità alla lista.
+				// ***** SINGULARITY of type (2) *****
+				// Checks if the states reached by the current label are more than one
+				// In this case, there's a singularity
 				if (!added_singularity_flag && current_label != EPSILON && pair.second.size() > 1) {
 					this->addSingularityToList(dfa_state, current_label);
 				}
 
-			} // Iterazione sulle label
+			} // Iteration over labels
 
-		} // Iterazioni sugli stati
+		} // Iterations over states
 
-		// Marco lo stato iniziale del DFA copia, in base allo stato iniziale dell'NFA, e calcolo le distanze
+		// Set the initial state of the DFA copy, based on the initial state of the NFA, and compute the distances
 		dfa->setInitialState(states_map[nfa->getInitialState()]);
 
 		(this->getRuntimeStatsValuesRef())[NUMBER_SINGULARITIES_CHECKUP] = this->m_singularities->size();
 
 
-		/***********************************
-		  SECONDA FASE - RISTRUTTURAZIONE
-		 ***********************************/
+		/**************************
+			SECOND PHASE - RESTRUCTURING
+
+			In this phase, the algorithm restructures the DFA, in order to remove the singularities.
+		 **************************/
 
 
 		/***** SCENARIO S_0 (ZERO) *****/
 
-		// Controllo sulla prima singolarità della lista.
-		// Verifico se la prima singolarità è quella relativa allo stato iniziale con etichetta EPSILON. Per farlo è sufficiente controllare l'etichetta (l'unica possibile eps-singolarità è infatti relativa allo stato iniziale, per come viene svolto il controllo nella prima fase).
+		// Checks on the first singularity of the list.
+		// Check if the first singularity is the one related to the initial state with the epsilon label. 
+		// To do so, it's enough to check the label (the only possible epsilon-singularity is in fact related to the initial state, 
+		// as the check is done in the first phase).
 		if (!this->m_singularities->empty() && this->m_singularities->getFirstLabel() == EPSILON) {
 			DEBUG_LOG(COLOR_PINK("SCENARIO 0"));
 			this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_0] += 1;
 
-			// Riga 5 (ma anche riga 15)
-			// Estrazione del primo elemento della coda
-			DEBUG_LOG("Estrazione della singolarità con etichetta EPSILON riferita allo stato iniziale");
+			// Extracting the first element of the list
+			DEBUG_LOG("Extracting the first singularity");
 			Singularity* initial_singularity = this->m_singularities->pop();
 
-			// Preparazione dei riferimenti allo stato e alla label
+			// Preparing the references to the state and the label
 			ConstructedState* initial_dfa_state = initial_singularity->getState();
 
-			// Riga 6
-			// Calcolo la epsilon-chiusura dello stato iniziale sul DFA, denotata anche |D
+			// Compute the epsilon closure of the initial state on the DFA, denoted also |D
 			Extension d0_eps_closure = ConstructedState::computeEpsilonClosure(initial_dfa_state);
 
-			// Calcolo la epsilon-chiusura dello stato iniziale sull'NFA, denotata anche |N
+			// Compute the epsilon closure of the initial state on the NFA, denoted also |N
 			Extension n0_eps_closure = ConstructedState::computeEpsilonClosure(nfa->getInitialState());
 
-			// Calcolo l'insieme |U di stati unsafe
+			// Computing the unsafe states set, denoted also {U}
 			Extension unsafe_states = Extension();
 			for (State* dfa_closure_state : d0_eps_closure) {
 				ConstructedState* c_dfa_closure_state = static_cast<ConstructedState*> (dfa_closure_state);
 
-				// Considero solo quelli unsafe
+				// Considering the unsafe states
 				if (c_dfa_closure_state->isUnsafe(initial_dfa_state, EPSILON)) {
 					unsafe_states.insert(dfa_closure_state);
-					// Inoltre, per velocizzare il futuro controllo, applico un marchio ad ogni stato unsafe
-					// Non avrò bisogno di rimuoverlo perché ogni stato unsafe verrà eliminato.
+					// Also, to speed up the next check, I mark the unsafe states.
+					// The mark hasn't a specific meaning, but it's useful to speed up the check.
+					// The mark is not removed, because it's not needed: the state is unsafe, so it will be removed anyway.
 					c_dfa_closure_state->setMarked(true);
 
-					DEBUG_LOG("Identificato uno stato unsafe: %s", c_dfa_closure_state->getName().c_str());
+					DEBUG_LOG("Unsafe state identified: %s", c_dfa_closure_state->getName().c_str());
 				}
 			}
 
-			// Riga 7
-			// Estendo l'estensione di d0 a |N
+			// Extending the extension of d0 to |N
 			initial_dfa_state->replaceExtensionWith(n0_eps_closure);
-			DEBUG_LOG("L'estensione dello stato iniziale del DFA è stata aggiornata a: %s", initial_dfa_state->getName().c_str());
+			DEBUG_LOG("The extension of the initial state of the DFA is updated to : %s", initial_dfa_state->getName().c_str());
 
-			// Rimuovo le eps-transizioni uscenti dallo stato iniziale
+			// Removing the epsilon-transitions outgoing from the initial state
 			for (State* eps_child : initial_dfa_state->getChildren(EPSILON)) {
-				DEBUG_LOG("Disconnetto la epsilon-transizione che collega il nodo iniziale %s al figlio %s", initial_dfa_state->getName().c_str(), eps_child->getName().c_str());
+				DEBUG_LOG("Disconnecting the epsilon-transition that connects the initial node %s to the child %s", initial_dfa_state->getName().c_str(), eps_child->getName().c_str());
 				initial_dfa_state->disconnectChild(EPSILON, eps_child);
 			}
 
-			// // Creo le singolarità creatisi a causa dell'aggiornamento dell'estensione
-			// // Per farlo utilizzo una mappa che conta quante volte ho una transizione uscente dall'estensione con una certa etichetta. Se ne ho più di una, alla fine dovrò creare una singolarità. Allo stesso modo creerò una singolarità se una transizione uscente da uno stato dell'estensione è "genitore" di una eps-transizione.
-			// map<string, int> labels_counter = map<string, int>();
-			//
-			// // Scorro su tutti gli stati della eps-chiusura e estraggo le singolarità
-			// for (State* nfa_state : n0_eps_closure) {
-			//
-			// 	// Scorro su tutte le label delle transizioni uscenti dello stato dell'estensione
-			// 	for (auto &trans : nfa_state->getExitingTransitionsRef()) {
-			// 		string label = trans.first;
-			//
-			// 		// Non considero quelle con etichetta epsilon
-			// 		if (label == EPSILON) {
-			// 			continue;
-			// 		}
-			//
-			// 		// Se la mappa non contiene questa etichetta, la creo
-			// 		if (!labels_counter.count(label)) {
-			// 			labels_counter[label] = 0;
-			// 		}
-			//
-			// 		// Verifico se lo stato figlio ha eps-transizioni uscenti
-			// 		for (State* nfa_child : trans.second) {
-			// 			if (nfa_child->hasExitingTransition(EPSILON)) {
-			// 				// In caso affermativo, creo la singolarità
-			// 				this->addSingularityToList(initial_dfa_state, label);
-			// 				// A questo punto la singolarità già esiste, non ha senso crearne altre che comunque non verranno conteggiate. Le escludo mettendo un valore basso alla mappa. In questo modo il risultato finale non sarà positivo e non raddoppierà la singolarità.
-			// 				labels_counter[label] = -99999;
-			// 				// Poi non ha neanche più senso continuare con il ciclo.
-			// 				break;
-			// 			}
-			// 		}
-			//
-			// 		// Infine, aggiungo il numero di transizioni con una data label alla mappa
-			// 		labels_counter[label] += trans.second.size();
-			// 	}
-			// }
-			//
-			// // Alla fine controllo il numero di etichette totali uscenti dagli stati dell'estensione.
-			// for (auto &pair : labels_counter) {
-			// 	// Se ho più di un certo numero
-			// 	if (pair.second > 1) {
-			// 		this->addSingularityToList(initial_dfa_state, pair.first);
-			// 	}
-			// }
-
-			// Controllo tutte le transizioni uscenti dagli stati della nuova estensione
-			DEBUG_LOG("Scorro su tutti gli stati dell'estensione per creare le necessarie singolarità");
+			// Check all the outgoing transitions from the states of the new extension
+			DEBUG_LOG("Iterating over all the states of the extension to create the necessary singularities");
 			for (State* nfa_state : n0_eps_closure) {
 
 				DEBUG_LOG("Considero lo stato %s", nfa_state->getName().c_str());
-				// Salto lo stato iniziale
+				// Skip the initial state
 				if (nfa_state == nfa->getInitialState()) {
-					DEBUG_LOG("Corrisponde allo stato iniziale, quindi lo salto");
+					DEBUG_LOG("It corresponds to the initial state, so I skip it");
 					continue;
 				}
 
@@ -329,15 +278,12 @@ namespace quicksc {
 				}
 			}
 
-
-			// Riga 8
-			// Scorro su tutti gli stati UNSAFE
+			// Iterating over all the unsafe states
 			for (State* unsafe : unsafe_states) {
 
-				// Riga 8
-				// Per tutte le transizioni uscenti da uno stato unsafe
+				// For all the outgoing transitions of the unsafe state
 				for (auto &pair : unsafe->getExitingTransitionsRef()) {
-					// Controllo che l'etichetta non sia EPSILON
+					// If the label is not epsilon
 					if (pair.first == EPSILON) {
 						continue;
 					}
@@ -345,20 +291,18 @@ namespace quicksc {
 					for (State* unsafe_child : pair.second) {
 						ConstructedState* c_unsafe_child = static_cast<ConstructedState*> (unsafe_child);
 
-						// Verifico che il figlio NON sia nell'insieme di stati unsafe
+						// Check if the child is NOT unsafe
 						if (!c_unsafe_child->isMarked()) {
-							// Riga 9
-							// Se NON lo è, creo una transizione
+							// If it's not unsafe, then I add the transition from the initial state
 							initial_dfa_state->connectChild(pair.first, unsafe_child);
-							DEBUG_LOG("Creazione della transizione:  %s --(%s)--> %s", initial_dfa_state->getName().c_str(), pair.first.c_str(), unsafe_child->getName().c_str());
+							DEBUG_LOG("Creating transition:  %s --(%s)--> %s", initial_dfa_state->getName().c_str(), pair.first.c_str(), unsafe_child->getName().c_str());
 						}
 					}
 				}
 
-				// Riga 11
-				// Per tutte le transizioni entranti in uno stato unsafe
+				// For all the transitions entering the unsafe state
 				for (auto &pair : unsafe->getIncomingTransitionsRef()) {
-					// Controllo che l'etichetta non sia EPSILON
+					// If the label is not epsilon
 					if (pair.first == EPSILON) {
 						continue;
 					}
@@ -366,20 +310,18 @@ namespace quicksc {
 					for (State* unsafe_parent : pair.second) {
 						ConstructedState* c_unsafe_parent = static_cast<ConstructedState*> (unsafe_parent);
 
-						// Verifico che il padre NON sia nell'insieme di stati unsafe
+						// Check if the parent is NOT unsafe
 						if (!c_unsafe_parent->isMarked()) {
-							// Riga 12
-							// Se NON lo è, creo una singolarità
+							// If it's not unsafe, then I create the singularity
 							this->addSingularityToList(c_unsafe_parent, pair.first);
 						}
 					}
 				}
 			}
 
-			// Riga 14
-			// Rimuovo dal DFA tutti gli stati unsafe
+			// Deleting the unsafe states
 			for (State* unsafe : unsafe_states) {
-				DEBUG_LOG("Rimuovo lo stato unsafe: %s", unsafe->getName().c_str());
+				DEBUG_LOG("Removing the unsafe state: %s", unsafe->getName().c_str());
 				dfa->removeState(unsafe);
 				this->m_singularities->removeSingularitiesOfState(static_cast<ConstructedState*>(unsafe));
 			}
@@ -389,71 +331,71 @@ namespace quicksc {
 
 		/***** SCENARI S_1 e S_2 *****/
 
-		DEBUG_LOG("Inizia il ciclo sulla coda di singolarità.");
+		DEBUG_LOG("Now the cycle over the singularities begins");
 
-		// Finché la coda delle singolarità non si svuota
+		// Until there are singularities to process
 		while (!this->m_singularities->empty()) {
 
 			DEBUG_MARK_PHASE( "Nuova iterazione per una nuova singolarità" ) {
 
-			DEBUG_LOG( "Stampa dell'automa finale FINO A QUI:" );
+			DEBUG_LOG("Printing the current situation of the automaton");
 			IF_DEBUG_ACTIVE( AutomataDrawer drawer = AutomataDrawer(dfa) );
 			IF_DEBUG_ACTIVE( std::cout << drawer.asString() << std::endl );
 			DEBUG_WAIT_USER_ENTER();
 
-			DEBUG_LOG( "Lista delle singolarità attuali (#%d):", this->m_singularities->size());
+			DEBUG_LOG("Current singularities list (#%d):", this->m_singularities->size());
 			IF_DEBUG_ACTIVE( this->m_singularities->printSingularities() );
 
-			// Estrazione del primo elemento della coda
+			// Extracting the first singularity, on the top of the list/queue
 			Singularity* current_singularity = this->m_singularities->pop();
-			DEBUG_LOG( "Estrazione della singolarità corrente: %s", current_singularity->toString().c_str());
+			DEBUG_LOG("Extracting the current singularity: %s", current_singularity->toString().c_str());
 
 			DEBUG_WAIT_USER_ENTER();
 
-			// Preparazione dei riferimenti allo stato e alla label
+			// References to the state and the label of the singularity
 			ConstructedState* current_singularity_state = current_singularity->getState();
 			string current_singularity_label = current_singularity->getLabel();
 
-			// Computo l'ell-closure della singolarità.
-			Extension nfa_l_closure = current_singularity_state->computeLClosureOfExtension(current_singularity_label); // Nell'algoritmo è rappresentata con un N in grassetto.
+			// Compute the ell-clousure of the state of the singularity, with the singularity label
+			Extension nfa_l_closure = current_singularity_state->computeLClosureOfExtension(current_singularity_label); // In the algorithm, this is called "|N|" (a bold "N")
 			string nfa_l_closure_name = ConstructedState::createNameFromExtension(nfa_l_closure);
 			DEBUG_LOG("|N| = %s", nfa_l_closure_name.c_str());
 
 
-			/***** SCENARIO S_1 (UNO) *****/
+			/***** SCENARIO S_1 (ONE) *****/
 
-			// NON esistono transizioni uscenti dallo stato che abbiano la label della singolarità
+			// If there are no outgoing transitions from the state of the singularity with the label of the singularity
 			if (!current_singularity_state->hasExitingTransition(current_singularity_label)) {
 				DEBUG_LOG(COLOR_PINK("SCENARIO 1"));
 				this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_1] += 1;
 
-				// Controllo se esiste già lo stesso stato nell'automa
+				// If the state already exists in the DFA
 				if (dfa->hasState(nfa_l_closure_name)) {
 
-					// Aggiunta della transizione dallo stato corrente a quello appena trovato
+					// Adding the transition from the state of the singularity to the state of the ell-closure
 					State* child = dfa->getState(nfa_l_closure_name);
 					current_singularity_state->connectChild(current_singularity_label, child);
-					DEBUG_LOG("Creazione della transizione: %s --(%s)--> %s",
+					DEBUG_LOG("Creating the transition: %s --(%s)--> %s",
 							current_singularity_state->getName().c_str(), current_singularity_label.c_str(), child->getName().c_str());
 
-					// Sistemo la distanza (CREDO!!!)
+					// Fix the distance
 					this->runDistanceRelocation(child, current_singularity_state->getDistance() + 1);
 
 				}
-				// Non esiste uno stato equivalente con estensione |N
+				// If the state does not exists in the DFA
 				else {
 
-					// Creazione di un nuovo stato State apposito e collegamento da quello corrente
+					// Create a new state and connect it to the current state
 					ConstructedState* new_state = new ConstructedState(nfa_l_closure);
 					dfa->addState(new_state);
 					current_singularity_state->connectChild(current_singularity_label, new_state);
 					new_state->setDistance(current_singularity_state->getDistance() + 1);
 
-					DEBUG_LOG("Creazione della transizione: %s --(%s)--> %s",
+					DEBUG_LOG("Creating the transition: %s --(%s)--> %s",
 							current_singularity_state->getName().c_str(), current_singularity_label.c_str(), new_state->getName().c_str());
 
-					// Per ogni transizione uscente dall'estensione, viene creato e aggiunto alla lista una nuova singolarità
-					// Nota: si sta prendendo a riferimento l'NFA associato
+					// For each outgoing transition from the extension, a new singularity is created and added to the list
+					// Note: the NFA is taken as reference
 					for (string label : new_state->getLabelsExitingFromExtension()) {
 						if (label != EPSILON) {
 							this->addSingularityToList(new_state, label);
@@ -464,183 +406,156 @@ namespace quicksc {
 
 			}
 
-			// Esistono transizioni uscenti dallo stato che abbiano la label <current_singularity_label> della singolarità
+			// Otherwise, there are transitions outgoing from the state with the singularity label as the marking label
 			else {
-				// Verifico lo status di tali transizioni, per verificare se posso applicare lo scenario 2
+				// Check the status of such transitions, to verify if the scenario 2 can be applied
 				bool scenario_2_flag = false;
-				DEBUG_LOG("Verifico le condizioni per il verificarsi dello Scenario 2");
+				DEBUG_LOG("Checking the conditions for the scenario 2");
 
-				// Devono esistere almeno due ell-figli
+				// CONDITION: there must be at least two ell-children
 				if (current_singularity_state->getChildrenRef(current_singularity_label).size() > 1) {
-					DEBUG_LOG("Lo stato %s ha almeno due transizioni uscenti marcate dall'etichetta %s", current_singularity_state->getName().c_str(), current_singularity_label.c_str());
+					DEBUG_LOG("The state %s has at least two transitions marked with label %s", current_singularity_state->getName().c_str(), current_singularity_label.c_str());
 					scenario_2_flag = true;
 				}
-				// OPPURE
+				// Otherwise
 				else {
 					State* current_singularity_child = current_singularity_state->getChild(current_singularity_label);
-					DEBUG_LOG("Lo stato %s ha una sola transizione uscente marcata dall'etichetta %s, che arriva allo stato %s", current_singularity_state->getName().c_str(), current_singularity_label.c_str(), current_singularity_child->getName().c_str());
+					DEBUG_LOG("The state %s has only one transitions marked with label %s, reaching state %s", current_singularity_state->getName().c_str(), current_singularity_label.c_str(), current_singularity_child->getName().c_str());
 
-					// L'unico figlio esistente deve avere una eps-transizione uscente
+					// The only existing child must have an outgoing epsilon transition
 					if (current_singularity_child->hasExitingTransition(EPSILON)) {
-						DEBUG_LOG("Lo stato figlio %s ha una epsilon-transizione uscente", current_singularity_child->getName().c_str());
+						DEBUG_LOG("The child state %s has an exiting epsilon-transition", current_singularity_child->getName().c_str());
 						scenario_2_flag = true;
 					}
-					// OPPURE
+					// Otherwise
 					else {
-						DEBUG_LOG("Lo stato figlio %s non ha epsilon-transizioni uscenti", current_singularity_child->getName().c_str());
+						DEBUG_LOG("The child state %s has no exiting epsilon-transitions", current_singularity_child->getName().c_str());
 						ConstructedState* c_current_singularity_child = static_cast<ConstructedState*> (current_singularity_child);
-						// L'unico figlio esistente deve avere estensione diversa da |N
 						if (!c_current_singularity_child->hasExtension(nfa_l_closure)) {
-							DEBUG_LOG("Lo stato figlio ha un'estensione differente dall'estensione |N corrente: %s", nfa_l_closure_name.c_str());
+							DEBUG_LOG("The child state has an extension different from |N|; its extension is %s", nfa_l_closure_name.c_str());
 							scenario_2_flag = true;
 						}
 					}
 				}
 
 
-				// Se non ho le condizioni per applicare lo scenario 2, esco dal ciclo e pesco una nuova sing.
+				// If the scenario 2 does not apply, the cycle ends and we go to the next singularity
 				if (!scenario_2_flag) {
 					continue;
 				}
 
-				/***** SCENARIO S_2 (DUE) *****/
+				/***** SCENARIO S_2 (TWO) *****/
 
 				DEBUG_LOG(COLOR_PINK("SCENARIO 2"));
 				this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_2] += 1;
 
 				Extension dfa_l_closure = current_singularity_state->computeLClosure(current_singularity_label);
-				DEBUG_LOG("La ell-chiusura sul DFA (denotata |D) contiene %lu stati", dfa_l_closure.size());
+				DEBUG_LOG("The ell-closure on the DFA (denoted |D) contains %lu states", dfa_l_closure.size());
 
-				// Calcolo la lista di stati UNSAFE
+				// Computing the list of unsafe states
 				Extension unsafe_states;
 				for (State* ell_child : dfa_l_closure) {
 					ConstructedState* c_ell_child = static_cast<ConstructedState*> (ell_child);
 
 					if (c_ell_child->isUnsafe(current_singularity_state, current_singularity_label)) {
-						// Aggiungo lo stato alla lista di stati unsafe
+						// Adding to the list the state
 						unsafe_states.insert(ell_child);
 						c_ell_child->setMarked(true);
-						// Provo a rimuovere fin da subito le singolarità degli stati unsafe
+						// Removing the outgoing singularities from the state
 						this->m_singularities->removeSingularitiesOfState(static_cast<ConstructedState*>(c_ell_child));
 					}
 				}
-				DEBUG_LOG("L'insieme di stati unsafe del DFA (denotato |U) contiene %lu stati", unsafe_states.size());
 
 				ConstructedState* dfa_new_state = static_cast<ConstructedState*> (dfa->getState(nfa_l_closure_name));
 
-				// Controllo se esiste già lo stesso stato nell'automa && non è uno stato unsafe
+				// Checks if the state already exists in the DFA and it is not unsafe
 				if (dfa_new_state != NULL && !dfa_new_state->isMarked()) {
-					// Al momento questo pezzo non esiste nello pseudocodice
-					DEBUG_LOG("Esiste già uno stato (safe) con la stessa estensione |N, quindi non ho bisogno di crearlo");
+					DEBUG_LOG("There is already a state (safe) with the same extension |N, so I do not need to create it");
 				}
-				// Non esiste uno stato equivalente con estensione |N
+				// There's no state with extension |N
 				else {
-					// Riga 28
-					DEBUG_LOG("Creazione di un nuovo stato con estensione |N");
+					DEBUG_LOG("Creating a new state with extension |N");
 					dfa_new_state = new ConstructedState(nfa_l_closure);
-					// Imposto la distanza, solo perché serve nelle singolarità
 					dfa_new_state->setDistance(current_singularity_state->getDistance() + 1);
 					dfa->addState(dfa_new_state);
 				}
 
-				// Riga 28
-				// Per ogni transizione uscente dall'estensione, viene creato e aggiunto alla lista una nuova singolarità
-				// Nota: si sta prendendo a riferimento l'NFA associato
+				// For each outgoing transition from the extension, a new singularity is created and added to the list
 				for (string label : dfa_new_state->getLabelsExitingFromExtension()) {
 					if (label != EPSILON) {
 						this->addSingularityToList(dfa_new_state, label);
 					}
 				}
 
-				// Riga 29
-				// Rimuovo tutte le transizioni rappresentate dalla singolarità
+				// Remove all the transitions represented by the singularity
 				for (State* current_singularity_child : current_singularity_state->getChildren(current_singularity_label)) {
-					DEBUG_LOG("Rimozione della transizione:  %s --(%s)--> %s", current_singularity_state->getName().c_str(), current_singularity_label.c_str(), current_singularity_child->getName().c_str());
+					DEBUG_LOG("Deleting the transition:  %s --(%s)--> %s", current_singularity_state->getName().c_str(), current_singularity_label.c_str(), current_singularity_child->getName().c_str());
 					current_singularity_state->disconnectChild(current_singularity_label, current_singularity_child);
 				}
-
-				// Righe 30-35
+				
 				for (State* unsafe : unsafe_states) {
 
-					// Per tutte le transizioni uscenti da |U
+					// For each outgoing transition from |U
 					for (auto &pair : unsafe->getExitingTransitionsRef()) {
 
-						// Escludiamo l'etichetta EPSILON
+						// We skip the EPSILON label
 						if (pair.first == EPSILON) {
 							continue;
 						}
 
-						// Scorro sui figli dello stato unsafe
+						// Iterating over the children of the unsafe state
 						for (State* unsafe_child : pair.second) {
 							ConstructedState* c_unsafe_child = static_cast<ConstructedState*> (unsafe_child);
 
-							// Se la transizione arriva in uno stato NON unsafe (= safe), quindi fuori da |U
+							// If the transition arrives in a state that is not unsafe, so outside from |U
 							if (!c_unsafe_child->isMarked()) {
-								// Riga 31
-								// Creo una transizione
+								// The transition is added to the DFA
 								dfa_new_state->connectChild(pair.first, c_unsafe_child);
-								DEBUG_LOG("Creazione della transizione:  %s --(%s)--> %s", dfa_new_state->getName().c_str(), pair.first.c_str(), c_unsafe_child->getName().c_str());
+								DEBUG_LOG("Creating the transition:  %s --(%s)--> %s", dfa_new_state->getName().c_str(), pair.first.c_str(), c_unsafe_child->getName().c_str());
 							}
 						}
 					}
 
-					// Per tutte le transizioni entranti in |U
+					// For each incoming transition to |U
 					for (auto &pair : unsafe->getIncomingTransitionsRef()) {
 
-						// Escludiamo l'etichetta EPSILON
+						// We exclude the EPSILON label
 						if (pair.first == EPSILON) {
 							continue;
 						}
 
-						// Scorro sui genitori dello stato unsafe
+						// Iterating over the parents of the unsafe state
 						for (State* unsafe_parent : pair.second) {
 							ConstructedState* c_unsafe_parent = static_cast<ConstructedState*> (unsafe_parent);
 
-							// Se la transizione arriva da uno stato NON unsafe (= safe), quindi fuori da |U
+							// If the transition arrives from a state that is not unsafe, so outside from |U
 							if (!c_unsafe_parent->isMarked()) {
-								// Riga 34
-								// Creo una singolarità
+								// A new singularity is created and added to the list
 								this->addSingularityToList(c_unsafe_parent, pair.first);
 							}
 						}
 					}
 				}
 
-				// Riga 36
-				// Rimuovo dal DFA tutti gli stati unsafe
+				// Removing the unsafe states from the DFA
 				for (State* unsafe : unsafe_states) {
-					DEBUG_LOG("Rimuovo lo stato unsafe: %s", unsafe->getName().c_str());
+					DEBUG_LOG("Removing the unsafe state: %s", unsafe->getName().c_str());
 					dfa->removeState(unsafe);
-					// Nota: le singolarità sono già state rimosse a priori
-					//this->m_singularities->removeSingularitiesOfState(static_cast<ConstructedState*>(unsafe));
 				}
 
-				// Riga 37
-				// Connetto lo stato della singolarità al nuovo stato, attraverso la label della singolarità
+				// Connecting the singularity state to the new state, through the singularity label
 				current_singularity_state->connectChild(current_singularity_label, dfa_new_state);
-				// this->m_singularities->sort(); // Lo faccio sotto
-				// Qui dovrei impostare la distanza. Tuttavia l'ho già fatto prima, perché serve per la singolarità
-				//dfa_new_state->setDistance(current_singularity_state->getDistance() + 1);
 
-				// Riga 38
-				// Controllo se esiste uno stato duplicato con la stessa estensione
-				// In caso affermativo, unisco i due stati. Il che significa unire:
-				// - Le due estensioni (che sono la stessa, quindi non le tocco)
-				// - Tutte le transizioni di uno nell'altro
-				// - Unificare le singolarità nella lista
-				DEBUG_LOG("Verifico se esiste un altro stato nel DFA con estensione pari a |N : %s", nfa_l_closure_name.c_str());
-
-				// Estrazione di tutti gli stati con il nome previsto
+				// Extracting all the states with a given name (i.e. the same extension)
 				vector<State*> namesake_states = dfa->getStatesByName(nfa_l_closure_name);
 
-				// Controllo se esiste più di uno stato con la medesima estensione
+				// If there's more than one state with the same name, it means that there are two states with the same extension
 				if (namesake_states.size() > 1) {
-					DEBUG_LOG("E' stato trovato più di uno stato con la stessa estensione \"%s\"", nfa_l_closure_name.c_str());
+					DEBUG_LOG("More than one state with the same extension \"%s\" has been found", nfa_l_closure_name.c_str());
 
 					ConstructedState* min_dist_state;
 					ConstructedState* max_dist_state;
 
-					// Identificazione dello stato con distanza minore / maggiore
 					if (namesake_states[0]->getDistance() < namesake_states[1]->getDistance()) {
 						min_dist_state = (ConstructedState*) namesake_states[0];
 						max_dist_state = (ConstructedState*) namesake_states[1];
@@ -651,39 +566,30 @@ namespace quicksc {
 
 					DEBUG_ASSERT_TRUE( min_dist_state->getDistance() <= max_dist_state->getDistance() );
 
-					// Sotto-procedura di sostituzione dello stato con distanza massima con quello con distanza minima:
-
-					// Re-direzione di tutte le transizioni dello stato con distanza massima su quello con distanza minima
-					// (Le transizioni duplicate non vengono copiate)
-					DEBUG_MARK_PHASE("Copia delle transizioni") {
-			//			std::cout << "MIN:\n" << min_dist_state->toString() << std::endl;
-			//			std::cout << "MAX:\n" << max_dist_state->toString() << std::endl;
+					DEBUG_MARK_PHASE("Copying the transitions") {
 						min_dist_state->copyAllTransitionsOf(max_dist_state);
-			//			std::cout << "MIN:\n" << min_dist_state->toString() << std::endl;
-			//			std::cout << "MAX:\n" << max_dist_state->toString() << std::endl;
 					}
 
-					// Rimozione dello stato dall'automa DFA
-					bool removed = dfa->removeState(max_dist_state);		// Rimuove il riferimento dello stato
+					// Removing the state from the DFA
+					bool removed = dfa->removeState(max_dist_state);
 					DEBUG_ASSERT_TRUE( removed );
 
-					// All'interno della lista di singolarità, elimino ogni occorrenza allo stato con distanza massima,
-					// salvando tuttavia le label dei singularity che erano presenti.
+					// In the list of singularity, I remove every occurrence to the state with maximum distance,
+					// however saving the labels of the singularity that were present.
 					set<string> max_dist_singularities_labels = this->m_singularities->removeSingularitiesOfState(max_dist_state);
 
-					// Per tutte le label salvate, se la singolarità corrispondente alla label NON è presente nello stato con distanza minima, la aggiungo
+					// For all the saved labels, if the singularity corresponding to the label is NOT present in the state with minimum distance, I add it
 					for (string singularity_label : max_dist_singularities_labels) {
 						if (singularity_label != EPSILON && !(min_dist_state == current_singularity_state && singularity_label == current_singularity_label)) {
 							this->addSingularityToList(min_dist_state, singularity_label);
 						}
 					}
 
-					// Procedura "Distance Relocation" su tutti i figli dello stato con dist.min, poiché i figli acquisiti dallo stato
-					// con dist.max. devono essere modificati
+					// Distance relocation procedure on all the children of the state with minimum distance, because the children acquired from the state
+					// with maximum distance must be modified
 					list<pair<State*, int>> to_be_relocated_list;
 					for (auto &trans : min_dist_state->getExitingTransitionsRef()) {
 						for (State* child : trans.second) {
-							DEBUG_LOG("Aggiungo alla lista di cui fare la distance_relocation: (%s, %u)", child->getName().c_str(), min_dist_state->getDistance() + 1);
 							to_be_relocated_list.push_back(pair<State*, int>(child, min_dist_state->getDistance() + 1));
 						}
 					}
@@ -705,16 +611,16 @@ namespace quicksc {
 				((double) this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_TOTAL])
 				/ dfa->getTransitionsCount();
 
-		// Restituisco il DFA determinizzato
+		// Returns the DFA
 		return dfa;
 	}
 
 	/**
-	 * Metodo privato.
-	 * Fornisce un'implementazione della procedura "Distance Relocation".
-	 * Modifica la distanza di una sequenza di nodi secondo i valori passati come argomento. La modifica
-	 * viene poi propagata sui figli finché la nuova distanza risulta migliore. La propagazione avviene
-	 * in maniera "width-first".
+	 * Private method.
+	 * Provides an implementation of the "Distance Relocation" procedure.
+	 * Modifies the distance of a sequence of nodes according to the values passed as argument. The modification
+	 * is then propagated on the children until the new distance is better. The propagation occurs
+	 * in a "width-first" way.
 	 */
 	void QuickSubsetConstruction::runDistanceRelocation(list<pair<State*, int>> relocation_sequence) {
 		while (!relocation_sequence.empty()) {
@@ -722,18 +628,15 @@ namespace quicksc {
 			relocation_sequence.pop_front();
 			State* current_state = current.first;
 
-			DEBUG_LOG("Esecuzione di \"Distance Relocation\" sullo stato %s", current_state->getName().c_str());
+			DEBUG_LOG("Execution of \"Distance Relocation\" on the state %s", current_state->getName().c_str());
 
-			// Se la distanza "nuova" è inferiore
 			if (current_state->getDistance() > current.second) {
-				DEBUG_LOG("La distanza è stata effettivamente ridotta da %u a %u", current_state->getDistance(), current.second);
+				DEBUG_LOG("The distance has been reduced from %u to %u", current_state->getDistance(), current.second);
 				current_state->setDistance(current.second);
 
-				// Propago la modifica ai figli
 				for (auto &trans : current_state->getExitingTransitionsRef()) {
 					for (State* child : trans.second) {
 
-						// Aggiungo il figlio in coda
 						relocation_sequence.push_back(pair<State*, int>(child, current.second + 1));
 					}
 				}
@@ -742,11 +645,11 @@ namespace quicksc {
 	}
 
 	/**
-	 * Metodo privato.
-	 * Wrapper per la funzione "runDistanceRelocation" che richiede in ingresso una lista di coppie
-	 * (State*, int). Poiché più di una volta, all'interno dell'algoritmo "Singularity Processing", viene
-	 * richiamata la procedura "Distance Relocation" con un singolo argomento, questo metodo fornisce
-	 * un'utile interfaccia per semplificare la costruzione dei parametri della chiamata.
+	 * Private method.
+	 * Wrapper for the "runDistanceRelocation" function that requires a list of pairs (State*, int) as input.
+	 * Since more than once, inside the "Singularity Processing" algorithm, the "Distance Relocation" procedure
+	 * is called with a single argument, this method provides a useful interface to simplify the construction
+	 * of the parameters of the call.
 	 */
 	void QuickSubsetConstruction::runDistanceRelocation(State* state, int new_distance) {
 		pair<State*, int> new_pair(state, new_distance);
@@ -756,18 +659,15 @@ namespace quicksc {
 	}
 
 	/**
-	 * Aggiunge una singularity alla lista, occupandosi della creazione e del fatto che possano esserci duplicati.
-	 * Eventualmente, segnala anche gli errori.
+	 * Adds a singularity to the list, taking care of the creation and the fact that there can be duplicates.
+	 * Eventually, it also signals the errors.
 	 */
 	void QuickSubsetConstruction::addSingularityToList(ConstructedState* singularity_state, string singularity_label) {
 		Singularity* new_singularity = new Singularity(singularity_state, singularity_label);
-		// Provo ad inserire il singularity nella lista
 		if (this->m_singularities->insert(new_singularity)) {
-			// Caso in cui non sono presenti singularity uguali
-			DEBUG_LOG("Aggiungo alla lista la Singularity %s" , new_singularity->toString().c_str());
+			DEBUG_LOG("Adding the singularity %s to the list" , new_singularity->toString().c_str());
 		} else {
-			// Caso in cui esistono singularity duplicati
-			DEBUG_LOG("La Singularity %s è già presente nella lista, pertanto non è stata aggiunta" , new_singularity->toString().c_str());
+			DEBUG_LOG("The singularity %s is already present in the list, thus it has not been added" , new_singularity->toString().c_str());
 			delete new_singularity;
 		}
 	}

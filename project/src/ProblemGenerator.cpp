@@ -1,13 +1,13 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * ProblemGenerator.hpp
  *
- * Project: TranslatedAutomata
  *
- * Implementazione della classe ProblemGenerator, avente la responsabilità
- * di generare istanze di problemi secondo differenti caratteristiche.
- * Ogni problema prevede:
- * - Un NFA di partenza, costruito su un alfabeto predefinito e secondo le configurazioni richieste
- *
+ * This file implements the ProblemGenerator class.
+ * The ProblemGenerator class is used to generate a series of problems to be solved by the algorithms.
+ * The problems are generated randomly, according to the configuration file.
  */
 
 #include "ProblemGenerator.hpp"
@@ -21,11 +21,11 @@
 #include "Debug.hpp"
 
 namespace quicksc {
-
+	
 	/**
-	 * Costruttore della "struttura" DeterminizationProblem.
-	 * Richiede un automa NFA.
-	 */
+	 * Constructor of the DeterminizationProblem structure.
+	 * It requires a NFA to be determinized.
+	*/
 	DeterminizationProblem::DeterminizationProblem(Automaton* nfa)
 	: Problem(DETERMINIZATION_PROBLEM) {
 
@@ -34,44 +34,42 @@ namespace quicksc {
 	}
 
 	/**
-	 * Distruttore.
-	 * Un problema possiede i propri attributi; pertanto, quando viene eliminato,
-	 * richiama il distruttore di tali attributi.
+	 * Destructor.
+	 * A problem owns its attributes; therefore, when it is deleted, it calls the destructor of such attributes.
 	 */
 	DeterminizationProblem::~DeterminizationProblem() {
 		delete this->m_nfa;
 	}
 
 	/**
-	 * Restituisce l'automa NFA del problema di determinizzazione.
+	 * Returns the NFA to be determinized.
 	 */
 	Automaton* DeterminizationProblem::getNFA() {
 		return this->m_nfa;
 	}
 
 	/**
-	 * Costruttore di un generatore di problemi.
-	 * Si occupa di istanziare i generatori delegati.
-	 * Inoltre, imposta alcuni parametri per la randomicità del programma.
+	 * Constructor of a problem generator.
+	 * It is responsible for instantiating the delegated generators.
+	 * In addition, it sets some parameters for the randomness of the program.
 	 */
 	ProblemGenerator::ProblemGenerator(Configurations* configurations) {
-		// Istanzio un nuovo gestore di randomicità
+		// Instantiating the random manager
 		RandomnessManager* random = new RandomnessManager();
 		//random->setSeed(1613950262);
 		random->printSeed();
-		// Una volta terminato il setup dei semi randomici, posso eliminarlo.
+		// Once the random manager ended its job, it can be deleted
 		delete random;
 
-		// Impostazione dell'alfabeto comune
+		// Setting the common alphabet
 		AlphabetGenerator* alphabet_generator = new AlphabetGenerator();
 		alphabet_generator->setCardinality((configurations->valueOf<unsigned int>(AlphabetCardinality)));
-		DEBUG_LOG("Cardinalità dell'alfabeto impostata a: %u", alphabet_generator->getCardinality());
+		DEBUG_LOG("Alphabet cardinality set to: %u", alphabet_generator->getCardinality());
 		this->m_alphabet = alphabet_generator->generate();
 		delete alphabet_generator;
 
 		this->m_problem_type = (Problem::ProblemType) configurations->valueOf<int>(ProblemType);
 
-		// Istanzio i generatori delegati
 		switch (this->m_problem_type) {
 
 		case Problem::DETERMINIZATION_PROBLEM :
@@ -80,7 +78,7 @@ namespace quicksc {
 			break;
 
 		default :
-			DEBUG_LOG_ERROR("Impossibile interpretare il valore %d come istanza dell'enum ProblemType", this->m_problem_type);
+			DEBUG_LOG_ERROR("Cannot parse the value %d as instance of the enumeration ProblemType", this->m_problem_type);
 			break;
 
 		}
@@ -88,17 +86,17 @@ namespace quicksc {
 	}
 
 	/**
-	 * Distruttore.
+	 * Destructor.
 	 */
 	ProblemGenerator::~ProblemGenerator() {
-		DEBUG_MARK_PHASE("Eliminazione dell'oggetto ProblemGenerator") {
+		DEBUG_MARK_PHASE("Deleting the nfa generator") {
 			//if (this->m_dfa_generator != NULL) delete this->m_dfa_generator;
 			if (this->m_nfa_generator != NULL) delete this->m_nfa_generator;
 		}
 	}
 
 	/**
-	 * Genera un nuovo problema del tipo specifico richiesto, richiamando il metodo apposito.
+	 * Generates a new problem of the specific type requested, calling the appropriate method.
 	 */
 	Problem* ProblemGenerator::generate() {
 		switch (this->m_problem_type) {
@@ -107,55 +105,56 @@ namespace quicksc {
 			return this->generateDeterminizationProblem();
 
 		default :
-			DEBUG_LOG_ERROR("Valore %d non riconosciuto all'interno dell'enumerazione ProblemType", this->m_problem_type);
+			DEBUG_LOG_ERROR("Cannot parse the value %d as instance of the enumeration ProblemType", this->m_problem_type);
 			return NULL;
 		}
 	}
 
 	/**
-	 * Genera un problema di determinizzazione, richiamando i generatori delegati.
+	 * Generates a determinization problem, calling the delegated generators.
 	 */
 	DeterminizationProblem* ProblemGenerator::generateDeterminizationProblem() {
-		DEBUG_LOG("Generazione dell'automa NFA");
+		DEBUG_LOG("NFA Generation");
 		Automaton* automaton = this->m_nfa_generator->generateAutomaton();
 
 		return new DeterminizationProblem(automaton);
 	}
 
-	/* Classe RandomnessManager */
+	/* Class RandomnessManager */
 
 	/**
-	 * Costruttore.
-	 * Genera un nuovo seme.
+	 * Constructor.
+	 * It sets the seed of the random number generator.
 	 */
 	RandomnessManager::RandomnessManager() {
-		this->m_seed = 0;	// Inizializzazione fittizia, viene sovrascritto nella funzione successiva
+		this->m_seed = 0;	// Fictional seed, it's overwritten by the next call to the newSeed() method
 		this->newSeed();
 	}
 
 	/**
-	 * Distruttore
+	 * Destructor.
 	 */
 	RandomnessManager::~RandomnessManager() {};
 
 	/**
-	 * Genera un nuovo seme causale sulla base dell'istante in cui ci si trova.
+	 * Generates a new seed for the random number generator.
+	 * The seed depends on the current time.
 	 */
 	void RandomnessManager::newSeed() {
 		this->m_seed = time(0);
 		srand(this->m_seed);
-		DEBUG_LOG("Impostazione di un nuovo seme casuale: %lu", this->m_seed);
+		DEBUG_LOG("Setting a new random seed: %lu", this->m_seed);
 	}
 
 	/**
-	 * Restituisce il seme attuale.
+	 * Returns the current seed.
 	 */
 	unsigned long int RandomnessManager::getSeed() {
 		return this->m_seed;
 	}
 
 	/**
-	 * Imposta il valore passato come argomento come nuovo seme.
+	 * Sets the seed of the random number generator.
 	 */
 	void RandomnessManager::setSeed(unsigned long int new_seed) {
 		this->m_seed = new_seed;
@@ -163,7 +162,7 @@ namespace quicksc {
 	}
 
 	/**
-	 * Stampa il seme attuale.
+	 * Prints the current seed.
 	 */
 	void RandomnessManager::printSeed() {
 		printf("Seme attuale = " COLOR_BLUE("%lu") "\n", this->m_seed);

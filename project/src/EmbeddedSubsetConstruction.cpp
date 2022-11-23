@@ -2,7 +2,7 @@
  * Michele Dusi, Gianfranco Lamperti
  * Quick Subset Construction
  * 
- * embedded_subset_construction.hpp
+ * EmbeddedSubsetConstruction.cpp
  *
  * 
  * This file implements the EmbeddedSubsetConstruction class.
