@@ -1,8 +1,11 @@
 #####################################################
-# Makefile del progetto "Quick Subset Construction" #
+# 				Makefile for project
+# 			  Quick Subset Construction
+#
+#      By Michele Dusi and Gianfranco Lamperti
 #####################################################
 
-# Nome del file eseguibile di output
+# Name of the executable file
 OUTPUT = qsc
 
 # Directories
@@ -11,25 +14,25 @@ BINDIR = ./bin
 INCDIR = ./include
 OBJDIR = ./obj
 
-# Parametri di compilazione
+# Compilation flags
 CC = g++
 CFLAGS=-I$(INCDIR) -g -std=c++17
 
-# Nomi (base) dei file da compilare
+# Base name of the source files
 SOURCES := $(shell find $(SRCDIR) -name '*.cpp')					# Sources ".cpp"
 HEADERS := $(shell find $(INCDIR) -name '*.hpp')					# Headers ".hpp"
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))	# Objects ".o"
 
-# Compilazione dei sorgenti nei singoli file obj
+# Compiling the source files into object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-# Compilazione e linking nell'eseguibile finale
+# Compiling the executable file, by linking the object files
 $(BINDIR)/$(OUTPUT): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 
-# Pulizia dei file creati durante la compilazione
+# Clean the directory
 # 	Usage: "make clean"
 .PHONY: clean
 clean:
