@@ -1,11 +1,13 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * SubsetConstruction.cpp
  *
- * Project: TranslatedAutomata
  *
- * Implementa l'algoritmo di "Subset Construction" per la generazione di DFA
- * equivalenti ad un NFA di partenza.
- *
+ * This source file contains the definition of the class SubsetConstruction.
+ * The Subset Construction algorithm is needed to build a DFA from a NFA. It represents the benchmark
+ * for the determinization task over finite automata.
  */
 
 #include "SubsetConstruction.hpp"
@@ -19,26 +21,23 @@
 namespace quicksc {
 
 	/**
-	 * Costruttore vuoto.
-	 * Imposta il nome della classe e l'abbreviazione dell'algoritmo, chiamando il costruttore padre.
+	 * Constructor.
 	 */
 	SubsetConstruction::SubsetConstruction() : DeterminizationAlgorithm(SC_ABBR, SC_NAME) {};
 
 	/**
-	 * Distruttore vuoto.
+	 * Destructor.
 	 */
 	SubsetConstruction::~SubsetConstruction() {};
 
-    /**
-     * Esegue l'algoritmo "Subset Construction".
-     * Nota: siamo sempre nel caso in cui NON esistono epsilon-transizioni.
-     */
+	/**
+	 * Returns the DFA obtained by the Subset Construction algorithm.
+	 * It runs the algorithm on the NFA passed as parameter.
+	 */
 	Automaton* SubsetConstruction::run(Automaton* nfa) {
-
-		// Creo l'automa a stati finiti deterministico, inizialmente vuoto
 		Automaton* dfa = new Automaton();
 
-        // Creo lo stato iniziale per il DFA
+        // Create the initial state of the DFA
 		Extension initial_dfa_extension;
 		State* nfa_initial_state = nfa->getInitialState();
 		DEBUG_ASSERT_NOT_NULL(nfa_initial_state);
@@ -46,68 +45,68 @@ namespace quicksc {
 		Extension epsilon_closure = ConstructedState::computeEpsilonClosure(initial_dfa_extension);
 		ConstructedState * initial_dfa_state = new ConstructedState(epsilon_closure);
 
-		// Inserisco lo stato all'interno del DFA
+		// Adding the initial state to the DFA
         dfa->addState(initial_dfa_state);
 
-        // Stack per gli stati ancora da processare (singularity)
+        // Creating a stack of states to be processed
         std::queue<ConstructedState*> singularities_stack;
 
-        // Inserisco come singularity di partenza il nodo iniziale
+        // The first state to be processed is the initial state
         singularities_stack.push(initial_dfa_state);
 
-        // Finché nella queue sono presenti delle singularity
+        // Continue untile the stack is empty
         while (! singularities_stack.empty()) {
 
-        	// Estraggo il primo elemento della queue
-        	ConstructedState* current_state = singularities_stack.front();			// Ottengo un riferimento all'elemento estratto
-            singularities_stack.pop();								// Rimuovo l'elemento
+        	// Pop the first state from the stack
+        	ConstructedState* current_state = singularities_stack.front();			// Obtain the extracted state
+            singularities_stack.pop();								// Remove the extracted state from the stack
 
-            // Per tutte le label che marcano transizioni uscenti da questo stato
+			// For all the labels that mark outgoing transitions from this state
             for (string l : current_state->getLabelsExitingFromExtension()) {
-            	// Salto le epsilon-transizioni
+				// We skip the epsilon-transitions
             	if (l == EPSILON) {
             		continue;
             	}
 
-            	// Computo la l-closure dello stato e creo un nuovo stato DFA
+				// We compute the l-closure of the state and create a new DFA state
             	Extension l_closure = current_state->computeLClosureOfExtension(l);
             	ConstructedState* new_state = new ConstructedState(l_closure);
-            	DEBUG_LOG("Dallo stato %s, con la label %s, ho creato lo stato %s",
+            	DEBUG_LOG("From state %s, with label %s, the state %s has been created",
             			current_state->getName().c_str(),
 						l.c_str(),
 						new_state->getName().c_str());
 
-                // Verifico se lo stato DFA creato è vuoto
+                // Check if the new state has an empty extension
                 if (new_state->isExtensionEmpty()) {
-                	// Se sì, lo elimino e procedo
-                	DEBUG_LOG("Estensione vuota, salto l'iterazione");
+					// If so, we delete it
+                	DEBUG_LOG("Empty state %s has been deleted", new_state->getName().c_str());
                     delete new_state;
                     continue;
                 }
-                // Verifico se lo stato DFA creato è già presente nel DFA (come nome)
+				// Check if the new state is already present in the DFA (according to the name)
                 else if (dfa->hasState(new_state->getName())) {
-                	// Se sì, lo stato estratto dalla queue può essere eliminato
-                	DEBUG_LOG("Lo stato è già presente, lo elimino e recupero quello vecchio");
+					// If so, we delete the extracted state
+                	DEBUG_LOG("The state %s is already present in the DFA, we can delete the new extracted state", new_state->getName().c_str());
                 	ConstructedState* tmp_state = new_state;
                     new_state = (ConstructedState*) dfa->getState(tmp_state->getName());
                     delete tmp_state;
                 }
-                // Se si tratta di uno stato "nuovo"
+                // If it's a new state
                 else {
-                	// Lo aggiungo al DFA e alla queue
-                	DEBUG_LOG("Lo stato è nuovo, lo aggiungo all'automa");
+                	// We add it to the DFA
+                	DEBUG_LOG("The state is new, we add it to the DFA");
                     dfa->addState(new_state);
                     singularities_stack.push(new_state);
                 }
 
-                // Effettuo la connessione:
+                // We create the transition between the current state and the new state
                 //	state--(l)-->new_state
                 current_state->connectChild(l, new_state);
             }
         }
 
-        // Imposto lo stato iniziale
-        // Questa operazione sistema le distanze in automatico
+        // Set the initial state of the DFA
+		// This procedure sets the distances from the initial state to all the other states, automatically
         dfa->setInitialState(initial_dfa_state);
 
         return dfa;
