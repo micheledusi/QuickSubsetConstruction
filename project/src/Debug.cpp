@@ -1,11 +1,19 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * Debug.hpp
  *
- * Project: TranslatedAutomata
  *
- * Implementazioni delle funzioni ausiliarie di debug, che non possono essere
- * rese come MACRO per via dell'utilizzo di strutture dati specifiche.
- *
+ * This file implements the debug functions within the Debug module.
+ * Usually, the debug functions are macro functions that are defined in the header file "Debug.hpp".
+ * This source file is used to define some of the debug functions that cannot be defined as macro functions,
+ * because they are too complex.
+ * 
+ * For further information about the debug functions, or for using them as an indipendent module 
+ * in your C/C++ project, please refer to the GitHub repository: 
+ * <see cref="https://github.com/MicheleDusi/MacroDebugger.git" />
+ * 
  */
 
 #include "Debug.hpp"
@@ -20,9 +28,8 @@ namespace quicksc {
 	int number_of_elements = 0;
 
 	/**
-	 * Funzione utilizzata per la marcatura delle fasi nella libreria di debug.
-	 * Permette la computazione della lista di numeri relativi alle varie fasi di
-	 * cui si sta tenendo traccia.
+	 * Function used to mark the phases in the debug library.
+	 * It allows the computation of the list of numbers related to the various phases of which we are keeping track.
 	 */
 	string debugComputeTicketsList() {
 		string result = std::to_string(*tickets_stack.begin());
@@ -37,23 +44,23 @@ namespace quicksc {
 	}
 
 	/**
-	 * Funzione utilizzata per la marcatura delle fasi nella libreria di debug.
-	 * Viene chiamata nel momento in cui si entra in una fase; ha due funzionalità principali:
-	 * - Modifica una variabile globale (stack) scrivendo al suo interno che si è entrati in una
-	 * 	 nuova fase; in altre parole, segna che si è "scesi di un livello".
-	 * - Restituisce una stringa che contiene la traccia di tutte le fasi attraversate finora.
+	 * Function used to mark the phases in the debug library.
+	 * It is called when entering a phase; it has two main functionalities:
+	 * - Modifies a global variable (stack) by writing to it that we have entered a
+	 * 	 new phase; in other words, it marks that we have "descended one level".
+	 * - Returns a string that contains the trace of all the phases passed so far.
 	 */
 	string debugAcquireTicket() {
 
-		// Aggiungo un elemento alla catena
+		// Adds an element to the stack
 		number_of_elements++;
 
-		// Se supero la dimensione dello stack
+		// If the stack overgoes the size of the tickets
 		if (number_of_elements > tickets_stack.size()) {
-			// Aggiungo un nuovo elemento, inizializzato a 1
+			// Adds a new ticket to the stack
 			tickets_stack.push_back(1);
 		} else {
-			// Altrimenti incremento quello già presente
+			// Otherwise, it increments the current ticket
 			auto cursor = tickets_stack.begin();
 			for (int i = 0; i < number_of_elements - 1; i++) {
 				cursor++;
@@ -61,25 +68,25 @@ namespace quicksc {
 			(*cursor)++;
 		}
 
-		// Restituisco la rappresentazione testuale della lista aggiornata
+		// Returns the textual representation of the updated list
 		return debugComputeTicketsList();
 	}
 
 	/**
-	 * Funzione utilizzata per la marcatura delle fasi nella libreria di debug.
-	 * Viene chiamata nel momento in cui si esce da una fase; ha due funzionalità principali:
-	 * - Modifica una variabile globale (stack) scrivendo al suo interno che si è usciti dalla fase
-	 *   corrente; in altre parole, segna che si è "risaliti di un livello".
-	 * - Restituisce una stringa che contiene la traccia di tutte le fasi attraversate finora.
+	 * Function used to mark the phases in the debug library.
+	 * It is called when exiting a phase; it has two main functionalities:
+	 * - Modifies a global variable (stack) by writing to it that we have exited the current phase;
+	 *  in other words, it marks that we have "risen one level".
+	 * - Returns a string that contains the trace of all the phases passed so far.
 	 */
 	string debugReleaseTicket() {
-		// Restituisco la rappresentazione testuale della lista aggiornata
+		// Returns the textual representation of the updated list
 		string s = debugComputeTicketsList();
 
-		// Considero un elemento in meno nella catena
+		// Considering one level less
 		number_of_elements--;
 
-		// Se risalgo troppo in fretta, dimentico gli indici più interni
+		// If we rise too fast, we forget the internal indices
 		if (tickets_stack.size() > number_of_elements + 1) {
 			tickets_stack.pop_back();
 		}

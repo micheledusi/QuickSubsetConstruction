@@ -1,14 +1,13 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * Automaton.cpp
  *
- * Project: TranslatedAutomaton
  *
- * File sorgente contenente la classe "Automaton", che rappresenta in astratto
- * un Automa a stati finiti.
- * Questa classe viene ereditata dalle due sottoclassi concrete DFA e NFA,
- * rispettivamente Automa a Stati Finit Non Deterministico e Automa a Stati Finiti
- * Deterministico.
- *
+ * Source file containing the "Automaton" class, which represents an abstract automaton.
+ * This class is inherited by the two concrete subclasses DFA and NFA, respectively 
+ * Deterministic Finite State Automaton and Non-Deterministic Finite State Automaton.
  */
 
 #include "Automaton.hpp"
@@ -21,10 +20,8 @@
 namespace quicksc {
 
 	/**
-	 * Costruttore della classe Automaton.
-	 * Istanzia lo stato iniziale a NULL
-	 * e la mappa degli stati come vuota.
-	 */
+     * Constructor.
+     */
     Automaton::Automaton()
 	: m_states() {
     	m_initial_state = NULL;
@@ -32,8 +29,7 @@ namespace quicksc {
 
 
     /**
-     * Distruttore della classe Automaton.
-     * Distrugge TUTTI gli stati contenuti nell'automa.
+     * Destructor.
      */
     Automaton::~Automaton() {
     	DEBUG_MARK_PHASE("Distruzione di un automa con %lu stati", this->m_states.size()) {
@@ -49,26 +45,26 @@ namespace quicksc {
     }
 
     /**
-     * Restituisce la dimensione dell'automa, ossia il numero di stati.
+     * Returns the size of the automaton, i.e. the number of states.
      */
     int Automaton::size() {
         return m_states.size();
     }
 
     /**
-     * Verifica se un automa contiene lo stato s al suo interno.
-     * I confronti avvengono tramite puntatore, NON tramite nome.
-     * Per effettuare un confronto tramite nomi è opportuno utilizzare
-     * l'omonimo metodo che accetta in ingresso una stringa.
+     * Checks if the automaton contains the state s.
+     * Comparisons are made by pointer, NOT by name.
+     * To perform a comparison by name it is advisable to use
+     * the same method that accepts a string as input.
      */
     bool Automaton::hasState(State* s) {
         return m_states.find(s) != m_states.end();
     }
 
     /**
-     * Verifica se un automa contiene uno stato con un nome specifico al suo interno.
-     * I confronti vengono effettuati tramite nome, non tramite puntatore.
-     * In caso di stati ominimi, questo metodo restituirebbe comunque un risultato affermativo.
+     * Checks if the automaton contains a state with a specific name.
+     * Comparisons are made by name, NOT by pointer.
+     * In case of states with the same name, this method would return a positive result.
      */
     bool Automaton::hasState(string name) {
     	for (State* s : m_states) {
@@ -80,14 +76,14 @@ namespace quicksc {
     }
 
     /**
-     * Ritorna - se presente - lo stato corrispondente alla label passata come parametro.
-     * In caso questo stato non faccia parte dell'automa, viene restituito un puntatore NULL.
+     * Returns - if present - the state corresponding to the label passed as a parameter.
+     * In case this state is not part of the automaton, a NULL pointer is returned.
      *
-     * Nota: In alcuni casi (durante l'esecuzione di algoritmi di costruzione) esiste più di uno stato
-     * con lo stesso nome. Questa condizione si verifica solo all'interno di un'esecuzione e viene "corretta" al termine,
-     * ma tuttavia non permette il corretto funzionamento di questo metodo (che invece restituisce il primo stato trovato).
-     * Per evitare l'insorgere di problematiche legate a stati omonimi, si consiglia di utilizzare il metodo
-     * "getStatesByName" che restituisce un insieme contenente TUTTI gli stati con il medesimo nome.
+     * Note: In some cases (during the execution of construction algorithms) there is more than one state
+     * with the same name. This condition occurs only within an execution and is "corrected" at the end,
+     * but still does not allow the correct functioning of this method (which instead returns the first state found).
+     * To avoid problems related to identical states, it is recommended to use the "getStatesByName" method
+     * which returns a set containing ALL states with the same name.
      */
     State* Automaton::getState(string name) {
     	for (State* s : m_states) {
@@ -99,13 +95,13 @@ namespace quicksc {
     }
 
     /**
-     * Restituisce l'insieme di tutti gli stati aventi il nome passato come parametro.
-     * Normalmente questo metodo restituisce un unico stato, poiché gli stati sono unici per nome.
-     * Tuttavia, durante l'esecuzione di algoritmi di costruzione, l'automa potrebbe trovarsi in condizioni particolari per cui
-     * esiste più di uno stato con lo stesso nome. In quel caso, è bene utilizzare questo metodo e non "getState".
+     * Returns the set of all states with the name passed as a parameter.
+     * Normally this method returns a single state, since the states are unique by name.
+     * However, during the execution of construction algorithms, the automaton may be in special conditions
+     * where there is more than one state with the same name. In that case, it is better to use this method and not "getState".
      */
     const vector<State*> Automaton::getStatesByName(string name) {
-    	vector<State*> namesake_states; // Insieme di stati omonimi
+    	vector<State*> namesake_states; // Homonymous states
     	for (State* s : m_states) {
     		if (s->getName() == name) {
     			namesake_states.push_back(s);
@@ -115,20 +111,18 @@ namespace quicksc {
     }
 
     /**
-     * Aggiunge uno stato alla mappa degli stati di questo automa.
-     * Nel caso esi già uno stato associato a tale nome, quello pre-esistente viene sovrascritto.
+     * Adds a state to the map of states of this automaton.
+     * In case there is already a state associated with that name, the existing one is overwritten.
      */
     void Automaton::addState(State* s) {
         m_states.insert(s);
     }
 
     /**
-     * Richiede in ingresso uno stato.
-     * Rimuove dall'automa lo stato dell'automa che abbia come nome il nome
-     * dello stato in ingresso.
-     * Se la rimozione avviene restituisce "TRUE", altrimenti se lo stato
-     * non viene trovato restituisce "FALSE".
-	 * Questo metodo NON distrugge lo stato.
+     * Requires a state as input.
+     * It removes a state from the automaton that has the same name as the state passed as input.
+     * If the removal is successful, it returns "TRUE", otherwise if the state is not found it returns "FALSE".
+     * This method does NOT destroy the state.
      */
     bool Automaton::removeState(State* s) {
     	DEBUG_MARK_PHASE("Function \"detachAllTransitions\" sullo stato %s", s->getName().c_str()) {
@@ -139,50 +133,48 @@ namespace quicksc {
     	m_states.erase(s);
     	DEBUG_ASSERT_FALSE(this->hasState(s));
     	return true;
-    	// FIXME
     }
 
     /**
-     * Imposta uno stato come stato iniziale.
-     * All'istanziazione, il riferimento allo stato iniziale ha valore NULL.
+     * Sets a state as the initial state.
+     * At instantiation, the reference to the initial state has a NULL value.
      *
-     * In caso questo metodo venga chiamato una seconda volta, il nodo iniziale viene
-     * "sovrascritto", e si perde il riferimento al precedente.
+     * In case this method is called a second time, the initial node is
+     * "overwritten", and the reference to the previous one is lost.
      *
-     * Nota: non è possibile impostare come stato iniziale uno stato non appartenente all'automa.
-     * In caso lo stato non faccia parte dell'automa, l'operazione non verrà effettuata.
+     * Note: it is not possible to set as initial state a state that does not belong to the automaton.
+     * In case the state does not belong to the automaton, the operation will not be performed.
      *
-     * Inoltre, si suppone che questa operazione venga effettuata al termine dell'inserimento di tutti
-     * gli stati, poiché causa anche l'assegnamento delle distanze per ogni nodo raggiungibile dallo stato
-     * iniziale. Pertanto, al termine di questa chiamata, ogni stato conterrà la distanza dal nodo iniziale,
-     * a partire dal nodo iniziale che avrà distanza 0.
-     * L'assegnamento delle distanze NON ha effetto sugli stati NON raggiungibili dallo stato impostato come
-     * stato iniziale.
+     * In addition, it is assumed that this operation is performed at the end of the insertion of all
+     * the states, because it also causes the assignment of the distances for each node reachable from the state
+     * set as the initial state. Therefore, at the end of this call, each state will contain the distance from the initial node,
+     * starting from the initial node that will have distance 0.
+     * The assignment of the distances DOES NOT affect the states NOT reachable from the state set as
+     * initial state.
      */
     void Automaton::setInitialState(State* s) {
     	if (hasState(s)) {
 			m_initial_state = s;
 	    	s->initDistancesRecursively(0);
     	} else {
-    		DEBUG_LOG_ERROR("Impossibile impostare %s come stato iniziale poiché non appartenente all'automa", s->getName().c_str());
+    		DEBUG_LOG_ERROR("Impossible to set %s as the initial state because it does not belong to the automaton", s->getName().c_str());
     	}
     }
 
     /**
-     * Imposta come stato iniziale lo stato dell'automa associato al nome passato come parametro.
+     * Sets the state associated with the name passed as a parameter as the initial state.
      *
-     * In caso questo metodo venga chiamato più di una volta, il nodo iniziale viene
-     * "sovrascritto" e viene perso il riferimento al precedente.
+     * In case this method is called more than once, the initial node is
+     * "overwritten" and the reference to the previous one is lost.
      *
-     * Nota: non è possibile impostare come stato iniziale uno stato non appartenente all'automa.
-     * In caso lo stato non faccia parte dell'automa, l'operazione non verrà effettuata.
+     * Note: it is not possible to set as initial state a state that does not belong to the automaton.
+     * In case the state does not belong to the automaton, the operation will not be performed.
      *
-     * Inoltre, si suppone che questa operazione venga effettuata al termine dell'inserimento di tutti
-     * gli stati, poiché causa anche l'assegnamento delle distanze per ogni nodo raggiungibile dallo stato
-     * iniziale. Pertanto, al termine di questa chiamata, ogni stato conterrà la distanza dal nodo iniziale,
-     * a partire dal nodo iniziale che avrà distanza 0.
-     * L'assegnamento delle distanze NON ha effetto sugli stati NON raggiungibili dallo stato impostato come
-     * stato iniziale.
+     * In addition, it is assumed that this operation is performed at the end of the insertion of all
+     * the states, because it also causes the assignment of the distances for each node reachable from the state
+     * set as the initial state. Therefore, at the end of this call, each state will contain the distance from the initial node,
+     * starting from the initial node that will have distance 0.
+     * The assignment of the distances DOES NOT affect the states NOT reachable from the state set as initial state.
      */
     void Automaton::setInitialState(string name) {
     	if (hasState(name)) {
@@ -192,76 +184,73 @@ namespace quicksc {
     }
 
     /**
-     * Verifica se uno stato associato ad un certo nome è impostato come stato iniziale.
+     * Checks if a state associated with a certain name is set as the initial state.
      */
     bool Automaton::isInitial(string name) {
         return (m_initial_state->getName() == name);
     }
 
     /**
-     * Verifica se uno stato è impostato come stato iniziale.
+     * Checks if a state is set as the initial state.
      */
     bool Automaton::isInitial(State* s) {
         return (m_initial_state == s);
-        /* Nota:
-         * Prima il confronto veniva effettuato tramite i nomi, ma poiché è stato definito
-         * l'operatore di uguaglianza come confronto di nomi, quest'implementazione non dovrebbe
-         * dare problemi.
+        /*
+         * Note: previously the comparison was performed by name, but since the equality operator has been defined as a name comparison,
+         * this implementation should not cause problems.
          */
     }
 
     /**
-     * Restituisce il nodo iniziale
+     * Returns the initial state.
      */
     State* Automaton::getInitialState() {
         return m_initial_state;
     }
 
     /**
-     * Metodo privato.
-     *
-     * Rimuove da un insieme tutti i nodi che sono raggiungibili (leggi: CONNESSI) dal nodo s passato come parametro
-     * mediante una transizione s->s', più tutti quelli che sono raggiungibili anche da essi in cascata.
-     * Inoltre, rimuove anche lo stato s.
-     * Questo metodo è usato per rimuovere tutti i nodi connessi (in maniera DIREZIONALE) allo stato iniziale,
-     * ossia tutti quelli raggiungibili nell'automa.
+     * Private method.
+     * Removes from a set all the nodes that are reachable (read: CONNECTED) from the node s passed as a parameter
+     * via a transition s->s', plus all those that are also reachable from them in cascade.
+     * In addition, it also removes the state s.
+     * This method is used to remove all the nodes connected (in a DIRECTIONAL way) to the initial state, that is, all those reachable in the automaton.
      */
     void Automaton::removeReachableStates(State* s, set<State*> &states) {
-    	// Verifico se contengo lo stato s
+        // Check if the automaton contains the state s
         if (states.find(s) != states.end()) {
             states.erase(s);
-            // Rimuovo lo stato dalla mappa. Se lo rimuovessi DOPO la chiamata ricorsiva, un ciclo
-            // di transizioni sugli stati genererebbe uno stack di chiamate ricorsive illimitato.
+            // Remove the state from the map. If I removed it AFTER the recursive call, a cycle
+            // of transitions on the states would generate an unlimited recursive call stack.
 
-            // Per tutte le transizioni uscenti da s
+            // For each exiting transition from s
             for (auto &pair: s->getExitingTransitions()) {
-            	// Per ciascuno stato raggiunto dalle transizioni
+                // For each state reached by the transitions
                 for (State* child: pair.second) {
-                	removeReachableStates(child, states); // Chiamata ricorsiva sui figli
+                	removeReachableStates(child, states);   // Recursive call on the children
                 }
             }
         }
     }
 
     /**
-     * Rimuove gli stati dell'automa che non sono più raggiungibili dallo stato iniziale,
-     * ossia tutti gli stati dell'automa che non possono essere "visitati" tramite una sequenza di transizioni.
-     *
-     * L'idea è quella di prendere l'insieme di tutti gli stati dell'automa e rimuovere quelli raggiungibili.
-     * Gli stati che rimarranno saranno necessariamente gli stati irraggiungibili.
-     *
-     * Restituisce gli stati che sono stati rimossi e che risultavano irraggiungibili.
+     * It removes the states of the automaton that are no longer reachable from the initial state,
+     * that is, all the states of the automaton that cannot be "visited" via a sequence of transitions.
+     * 
+     * The idea is to take the set of all the states of the automaton and remove those that are reachable.
+     * The states that will remain will necessarily be the unreachable states.
+     * 
+     * Returns the states that have been removed and that were unreachable.
      */
     set<State*> Automaton::removeUnreachableStates() {
-    	// Creo l'insieme di tutti gli stati dell'automa
+        // Create the set of all the states of the automaton
         set<State*> unreachable = set<State*>(m_states.begin(), m_states.end());
 
-        // Lavoro per differenza: rimuovo dall'insieme tutti gli stati raggiungibili
+        // Work by difference: remove from the set all the states that are reachable
         removeReachableStates(m_initial_state, unreachable);
 
-        // Mi restano tutti gli stati irrangiungibili, sui quali itero
+        // The remaining states are the unreachable ones, on which I iterate
         for (State* s: unreachable) {
-        	// Rimuovo dalla mappa dell'automa ogni stato irraggiungibile
+            // Remove from the automaton map every unreachable state
             m_states.erase(s);
         }
 
@@ -269,26 +258,25 @@ namespace quicksc {
     }
 
     /**
-     * Restituisce la lista di tutti gli stati dell'automa sotto forma di list.
-     * Gli stati sono restituiti come puntatori.
-     * La classe "list" permette un'aggiunta o rimozione in mezzo alla lista
-     * senza reallocazione della coda.
+     * Returns the list of all the states of the automaton in the form of a list.
+     * The states are returned as pointers.
+     * The "list" class allows an addition or removal in the middle of the list without reallocation of the queue.
      */
     const list<State*> Automaton::getStatesList() {
     	return list<State*>(m_states.begin(), m_states.end());
     }
 
     /**
-     * Restituisce il vettore dinamico di tutti gli stati dell'automa sotto forma di vector.
-     * Gli stati sono restituiti come puntatori.
-     * La classe "vector" permette un accesso casuale con tempo costante.
+     * Returns the dynamic vector of all the states of the automaton in the form of vector.
+     * The states are returned as pointers.
+     * The "vector" class allows random access with constant time.
      */
     const vector<State*> Automaton::getStatesVector() {
     	return vector<State*>(m_states.begin(), m_states.end());
     }
 
     /**
-     * Resituisce il numero di transizioni totali dell'automa.
+     * Returns the total number of transitions of the automaton.
      */
     unsigned int Automaton::getTransitionsCount() {
         unsigned int count = 0;
@@ -299,12 +287,11 @@ namespace quicksc {
     }
 
     /**
-     * Restituisce l'alfabeto dell'automa.
-     * NOTA: Questo metodo non restituisce necessariamente tutto l'alfabeto su cui è stato
-     * definito in principio l'automa, poiché un automa NON mantiene un riferimento a tale
-     * alfabeto.
-     * Al contrario, computa l'alfabeto analizzando tutte le labels presenti in tutte le transizioni
-     * dell'automa. Per questo motivo, può essere dispendioso in termini di performance.
+     * Returns the alphabet of the automaton.
+     * NOTE: This method does not necessarily return the entire alphabet on which the automaton was
+     * defined in principle, because an automaton DOES NOT maintain a reference to such alphabet.
+     * On the contrary, it computes the alphabet by analyzing all the labels present in all the transitions
+     * of the automaton. For this reason, it can be expensive in terms of performance.
      */
     const Alphabet Automaton::getAlphabet() {
         Alphabet alphabet = Alphabet();
@@ -321,10 +308,9 @@ namespace quicksc {
     }
 
     /**
-     * Inserisce una transizione fra i due stati marcata con la label passata come parametro.
-     * Il metodo funziona solamente se entrambi gli stati sono appartenenti all'automa, e in
-     * tal caso restituisce TRUE.
-     * In caso contrario restituisce FALSE.
+     * Inserts a transition between the two states marked with the label passed as a parameter.
+     * The method works only if both states are part of the automaton, and in this case it returns TRUE.
+     * Otherwise it returns FALSE.
      */
     bool Automaton::connectStates(State *from, State *to, string label) {
     	if (this->hasState(from) && this->hasState(to)) {
@@ -336,57 +322,55 @@ namespace quicksc {
     }
 
     /**
-	 * Inserisce una transizione fra i due stati marcata con la label passata come parametro.
-	 * Il metodo funziona solamente se entrambi gli stati sono appartenenti all'automa, e in
-     * tal caso restituisce TRUE.
-     * In caso contrario restituisce FALSE.
-	 */
+     * Inserts a transition between the two states marked with the label passed as a parameter.
+     * The method works only if both states are part of the automaton, and in this case it returns TRUE.
+     * Otherwise it returns FALSE.
+     */
     bool Automaton::connectStates(string from, string to, string label) {
     	return this->connectStates(getState(from), getState(to), label);
     }
 
-    /**
-     * Operatore di uguaglianza per automi.
+    /** 
+     * Equality operator for automata. 
      */
     bool Automaton::operator==(Automaton& other) {
-    	DEBUG_MARK_PHASE("Confronto di due automi") {
+        DEBUG_MARK_PHASE("Automata comparison") {
 
-    	// Se gli stati iniziali non sono uguali, certamente i due automi non sono uguali
+    	// Check if the automata have the same initial state
         if (*m_initial_state != *other.m_initial_state) {
-        	DEBUG_LOG("Lo stato %s è diverso da %s", m_initial_state->getName().c_str(), other.m_initial_state->getName().c_str());
+        	DEBUG_LOG("The state %s è is different from %s", m_initial_state->getName().c_str(), other.m_initial_state->getName().c_str());
         	return false;
         }
 
-        // Se gli automi non hanno la stessa dimensione (= numero di stati), allora non sono certamente uguali
+        // Check if the automata have the same number of states
         if (m_states.size() != other.m_states.size()) {
-        	DEBUG_LOG("Il primo automa ha %lu stati, il secondo ne ha %lu", m_states.size(), other.m_states.size());
+        	DEBUG_LOG("The first automaton has %lu states, the second automaton has %lu states", m_states.size(), other.m_states.size());
         	return false;
         }
 
-        // Effettuo il confronto stato per stato dei due automi.
-        // Per ciascuno stato del primo automa, verifico che esista anche nell'altro.
-        // Non c'è bisogno di fare il processo inverso, poiché il numero di stati è uguale.
+        // Check if the automata have the same states
+        // For each state of the first automaton I check that it exists also in the other.
         for (auto state : m_states) {
 
-        	// Cerco uno stato con lo stesso nome nell'altro automa
+            // Search for a state with the same name in the other automaton
         	State* sakename_state;
         	if ((sakename_state = other.getState(state->getName())) != NULL) {
-        		DEBUG_LOG("In entrambi gli automi esiste lo stato \"%s\"", state->getName().c_str());
+        		DEBUG_LOG("In both automata there's a state with name \"%s\"", state->getName().c_str());
 
-        		// Verifico che abbia le stesse transizioni a stati con lo stesso nome (!)
+                // Check if the state has the same transitions to states with the same name (!)
         		if (!state->hasSameTransitionsNamesOf(sakename_state)) {
-        			DEBUG_LOG("Tuttavia, gli stati non hanno le stesse transizioni");
+        			DEBUG_LOG("However, the states have not the same transitions");
         			return false;
         		}
 
         	} else {
-        		DEBUG_LOG("Nel secondo automa non è stato trovato uno stato \"%s\" contenuto invece nel primo automa", state->getName().c_str());
+        		DEBUG_LOG("In the secon automata, there's no state with name \"%s\", which is instead contained in the first automaton", state->getName().c_str());
         		return false;
         	}
         }
 
     	}
-    	DEBUG_LOG("I due automi analizzati sono risultati essere congruenti");
+    	DEBUG_LOG("The automata are equal");
         return true;
     }
 

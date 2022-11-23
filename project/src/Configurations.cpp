@@ -1,8 +1,11 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * Configurations.cpp
  *
- * Implementazione della classe "Configurations", che memorizza e offre un'interfaccia
- * standard per le impostazioni con cui eseguire il programma.
+ * 
+ * This file contains some generic configurations for the program to run.
  */
 
 #include "Configurations.hpp"
@@ -20,53 +23,53 @@
 
 namespace quicksc {
 
-// CLASSE "SettingValue"
+// CLASS "SettingValue"
 
 	/**
-	 * Costruttore con valore intero.
+	 * Constructor with integer value.
 	 */
 	AtomicSettingValue::AtomicSettingValue(int value) {
-		if (DEBUG_BUILD) { DEBUG_LOG("Costruzione di un oggetto SettingValue con valore INT = %d", value); }
+		if (DEBUG_BUILD) { DEBUG_LOG("Instancing a SettingValue object with INTEGER value = %d", value); }
 		this->m_type = INT;
 		this->m_value.integer = value;
 	}
 
 	/**
-	 * Costruttore con valore reale.
+	 * Constructor with real value.
 	 */
 	AtomicSettingValue::AtomicSettingValue(double value) {
-		if (DEBUG_BUILD) { DEBUG_LOG("Costruzione di un oggetto SettingValue con valore DOUBLE = %f", value); }
+		if (DEBUG_BUILD) { DEBUG_LOG("Instancing a SettingValue object with DOUBLE value = %f", value); }
 		this->m_type = DOUBLE;
 		this->m_value.real = value;
 	}
 
 	/**
-	 * Costruttore con valore booleano.
+	 * Constructor with boolean value.
 	 */
 	AtomicSettingValue::AtomicSettingValue(bool value) {
-		if (DEBUG_BUILD) { DEBUG_LOG("Costruzione di un oggetto SettingValue con valore BOOL = %d", value); }
+		if (DEBUG_BUILD) { DEBUG_LOG("Instancing a SettingValue object with BOOLEAN value = %d", value); }
 		this->m_type = BOOL;
 		this->m_value.flag = value;
 	}
 
 	/**
-	 * Restituisce il tipo del valore.
+	 * This method returns the type of the setting.
 	 */
 	SettingType AtomicSettingValue::getType() {
 		return this->m_type;
 	}
 
 	/**
-	 * Restituisce il valore.
-	 * Sarà compito del metodo di Configurations castarlo al tipo corretto.
+	 * This method returns the value of the setting.
+	 * It is the responsibility of the Configurations method to cast it to the correct type.
 	 */
 	Value AtomicSettingValue::getValue() {
 		return this->m_value;
 	}
 
 	/**
-	 * Restituisce il valore come stringa.
-	 * Poiché il casting avviene internamente non è necessario usare template o overloading.
+	 * This method returns the value of the setting as a string.
+	 * Since the casting is done internally, it is not necessary to use templates or overloading.
 	 */
 	string AtomicSettingValue::getValueString() {
 		switch (this->m_type) {
@@ -77,16 +80,16 @@ namespace quicksc {
 		case BOOL :
 			return std::to_string(this->m_value.flag);
 		default :
-			DEBUG_LOG_ERROR("Impossibile interpretare il valore %d", this->m_value.integer);
+			DEBUG_LOG_ERROR("Cannot interpret the value %d", this->m_value.integer);
 			return "null";
 		}
 	}
 
 	/**
-	 * Restituisce una rappresentazione dell'oggetto come stringa.
-	 * In caso di valori multipli, restituisce TUTTI i valori.
-	 * Nella stringa è presente anche un'informazione sul tipo di valore.
-	 */
+	 * Returns a string representation of the object.
+	 * In case of multiple values, returns ALL the values. 
+	 * The string also contains information about the type of value.
+	*/
 	string AtomicSettingValue::toString() {
 		switch (this->m_type) {
 		case INT :
@@ -96,25 +99,24 @@ namespace quicksc {
 		case BOOL :
 			return "bool:" + std::to_string(this->m_value.flag);
 		default :
-			DEBUG_LOG_ERROR("Impossibile interpretare il valore %d", this->m_value.integer);
+			DEBUG_LOG_ERROR("Cannot interpret the value %d", this->m_value.integer);
 			return "null";
 		}
 	}
 
 	/**
-	 * Poiché il valore è "singolo" ( o atomico), non esiste un valore successivo e il metodo restituisce sempre FALSE.
+	 * Since the value is "single" (or atomic), there is no next value and the method always returns FALSE.
 	 */
 	bool AtomicSettingValue::nextCase() {
 		return false;
 	}
 
-// CLASSE "SettingMultiValue"
+// CLASS "SettingMultiValue"
 
 	/**
-	 * Costruttore con un array di interi.
+	 * Constructor with an array of integers.
 	 */
 	CompositeSettingValue::CompositeSettingValue(vector<int> values) : SettingValue() {
-		// Inserisco i valori
 		this->m_multivalue = vector<SettingValue*>();
 		for (int n : values) {
 			this->m_multivalue.push_back(new AtomicSettingValue(n));
@@ -123,10 +125,9 @@ namespace quicksc {
 	}
 
 	/**
-	 * Costruttore con un array di double.
+	 * Constructor with an array of doubles.
 	 */
 	CompositeSettingValue::CompositeSettingValue(vector<double> values) : SettingValue() {
-		// Inserisco i valori
 		this->m_multivalue = vector<SettingValue*>();
 		for (double d : values) {
 			this->m_multivalue.push_back(new AtomicSettingValue(d));
@@ -139,20 +140,20 @@ namespace quicksc {
 	}
 
 	/**
-	 * Restituisce il valore corrente come stringa.
-	 * In caso di valori multipli, solo il valore corrente è restituito come stringa.
+	 * Returns the current value as a string.
+	 * In case of multiple values, only the current value is returned as a string.
 	 */
 	string CompositeSettingValue::getValueString() {
 		return this->m_multivalue[this->m_current_value_index]->getValueString();
 	}
 
 	/**
-	 * Restituisce una rappresentazione dell'oggetto come stringa.
-	 * In caso di valori multipli, restituisce TUTTI i valori.
-	 * Nella stringa è presente anche un'informazione sul tipo di valore.
-	 */
+	 * Returns a string representation of the object.
+	 * In case of multiple values, returns ALL the values. 
+	 * The string also contains information about the type of value.
+	*/
 	string CompositeSettingValue::toString() {
-		// Concateno i valori
+		// Concate all the values
 		string result = "{";
 		for (SettingValue* sv : this->m_multivalue) {
 			result += sv->getValueString() + ", ";
@@ -163,44 +164,44 @@ namespace quicksc {
 	}
 
 	/**
-	 * Restituisce il valore all'indice corrente.
-	 * Sarà responsabilità della classe Configuration castare il tutto.
+	 * Returns the value at the current index.
+	 * It is the responsibility of the Configuration method to cast it to the correct type.
 	 */
 	Value CompositeSettingValue::getValue() {
 		return this->m_multivalue[this->m_current_value_index]->getValue();
 	}
 
 	/**
-	 * Incrementa il contatore e imposta l'oggetto al valore successivo del vettore.
-	 * Se tale valore esiste, e quindi se tale valore cambia, viene restituito TRUE.
-	 * Altrimenti viene restituito FALSE, e il contatore viene resettato a 0 per un nuovo ciclo.
+	 * Increments the counter and sets the object to the next value of the vector.
+	 * If such a value exists, and therefore if such a value changes, TRUE is returned.
+	 * Otherwise, FALSE is returned, and the counter is reset to 0 for a new cycle.
 	 */
 	bool CompositeSettingValue::nextCase() {
-		// Verifico se il valore corrente è atomico o contiene valori multipli a sua volta
+		// Check if the current value is atomic or contains multiple values itself
 		if ((this->m_multivalue[this->m_current_value_index])->nextCase()) {
-			// In tal caso, itero su di esso e restituisco TRUE
+			// In this case, we iterate on it and return TRUE
 			return true;
 		}
-		// Se invece il valore corrente ha già "esaurito" i suoi valori, o ha un valore atomico, il suo metodo restituirà false.
+		// If the current value has already "exhausted" its values, or has an atomic value, its method will return false.
 		else {
-			// Viene quindi verificato se esistono altri valori nel vettore di questo oggetto
-			// Incremento il contatore
+			// We check if there are other values in the vector of this object
+			// Increment the counter
 			this->m_current_value_index++;
-			// Verifico se corrisponde ad un nuovo valore
+			// Check if the counter corresponds to a new value
 			if (this->m_current_value_index < this->m_multivalue.size()) {
 				return true;
 			} else {
-				// Altrimenti sono arrivato alla fine, azzero il contatore e restituisco FALSE
+				// Otherwise, I have reached the end, I reset the counter and return FALSE
 				this->m_current_value_index = 0;
 				return false;
 			}
 		}
 	}
 
-// CLASSE "Configurations"
+// CLASS "Configurations"
 
 	/**
-	 * Costruttore.
+	 * Constructor.
 	 */
 	Configurations::Configurations() {
 		this->m_session_index = 0;
@@ -208,18 +209,18 @@ namespace quicksc {
 	}
 
 	/**
-	 * Distruttore.
+	 * Destructor.
 	 */
 	Configurations::~Configurations() {}
 
 	/**
-	 * Metodo static.
-	 * Restituisce il setting associato all'ID.
+	 * Static method.
+	 * Returns the setting associated with the ID.
 	 *
-	 * NOTA: Il metodo fa affidamento sul fatto che le strutture sono state inizializzate nell'array statico
-	 * in ordine, e quindi è possibile avervi accesso tramite l'indice dell'array.
-	 * Per sicurezza è stato aggiunto un controllo all'interno di questo metodo, che -in caso l'ID non corrisponda-
-	 * segnala un errore di debug.
+	 * NOTE: The method relies on the fact that the structures have been initialized in the static array
+	 * in order, and therefore it is possible to access them through the index of the array.
+	 * For safety, a check has been added inside this method, which -in case the ID does not match-
+	 * reports a debug error.
 	 */
 	const Configurations::Setting& Configurations::getSetting(const SettingID& id) {
 		const Configurations::Setting* setting;
@@ -236,31 +237,31 @@ namespace quicksc {
 	/////
 
 	void Configurations::loadDefault() {
-		// Numero di Testcase
+		// Testcase number
 		load(Testcases, 100);
 
-		// Proprietà del problema
+		// Problem properties
 		load(ProblemType, Problem::DETERMINIZATION_PROBLEM);
 		load(AutomatonStructure, AUTOMATON_RANDOM);
 //		load(AutomatonStructure, AUTOMATON_STRATIFIED);
 //		load(AutomatonStructure, AUTOMATON_STRATIFIED_WITH_SAFE_ZONE);
 //		load(AutomatonStructure, AUTOMATON_ACYCLIC);
 
-		// Variabili d'ambiente
+		// Environment properties
 		load(AlphabetCardinality, 5);
 		load(AutomatonFinalProbability, 0.1);
 		load(AutomatonTransitionsPercentage, 0.2);
 
-		// Variabili indipendenti default
+		// Default environment properties
 		load(AutomatonSize, 100);
 		load(EpsilonPercentage, 0.2);
 		load(AutomatonMaxDistance, 20);
 		load(AutomatonSafeZoneDistance, 10);
 
-		// Moduli e funzionalità opzionali
-		load(ActiveAutomatonPruning, true); 				// In caso sia attivato, evita la formazione e la gestione dello stato con estensione vuota, tramite procedura Automaton Pruning
-		load(ActiveRemovingLabel, true); 					// In caso sia attivato, utilizza una label apposita per segnalare le epsilon-transizione, che deve essere rimossa durante la determinizzazione
-		load(ActiveDistanceCheckInTranslation, false); 		// In caso sia attivato, durante la traduzione genera delle singolarità solamente se gli stati soddisfano una particolare condizione sulla distanza [FIXME è una condizione che genera bug]
+		// Modules and special properties
+		load(ActiveAutomatonPruning, true); 				// If it's true, the automaton is pruned before the computation
+		load(ActiveRemovingLabel, true); 					// If it's true, a special label is used to refer to the epsilon transitions, that has to be removed in the end
+		load(ActiveDistanceCheckInTranslation, false); 		// If it's true, the translation generates the singularities only if they satisfy a distance constraint [TODO: it's a bugged feature]
 
 		load(PrintStatistics, true);
 		load(LogStatistics, true);
@@ -271,8 +272,8 @@ namespace quicksc {
 	}
 
 	/**
-	 * Funzione di utilità che fa il trimming di una stringa, ossia rimuove tutti i caratteri di spaziatura (o i delimitatori specificati in input) dall'inizio e dalla fine della stringa.
-	 NOTA: la stringa è modificata in place, non copiata.
+	 * Utility function that trims a string, i.e. removes all the whitespace characters (or the specified delimiters) from the beginning and the end of the string.
+	 * NOTE: the string is modified in place, not copied.
 	 */
 	void trim(string& s, const string& delimiters = " \f\n\r\t\v" ) {
 		s.erase(
@@ -285,13 +286,12 @@ namespace quicksc {
 	}
 
 	/**
-	 * Carica le configurazioni da file, costruendo differenti sessioni.
+	 * Loads the configurations from a file, building different sessions.
 	 */
 	void Configurations::load(string filename) {
-		// Reset indice
+		// Index reset
 		this->m_session_index = 0;
 
-		// Apro il file di configurazione in lettura
 		std::ifstream infile(filename);
 
 		if (infile.fail()) {
@@ -306,54 +306,52 @@ namespace quicksc {
 
 		string line;
 		while (std::getline(infile, line)) {
-			// Trimming line
 			trim(line);
 
-			// Salto le linee vuote
+			// Skip empty lines
 			if (line == "") {
 				continue;
 			}
-			// Inizio una nuova sessione
+			// Start a new session
 			else if (line == "start session") {
-				DEBUG_LOG("E' stata identificata una nuova sessione di test");
-				// Creo il nuovo array
+				DEBUG_LOG("A new session has been started");
+				// Creates the new array
 				this->m_settings_instances.push_back(map<SettingID, SettingValue*>());
-				// Carico le variabili fisse
+				// Load the default values
 				this->loadDefault();
 			}
-			// Finisco una sessione
+			// End a session
 			else if (line == "end session") {
-				DEBUG_LOG_SUCCESS("La sessione è stata configurata correttamente");
-				// Incremento l'indice
+				DEBUG_LOG_SUCCESS("The session has been configured correctly");
+				// Index increase
 				this->m_session_index += 1;
 			}
-			// Altrimenti estraggo i dati
+			// Otherwise, we extract data
 			else {
 
-				// Cerco all'interno l'uguale
 				string delimiter = "=";
 				int eq_pos = line.find(delimiter);
 				if (eq_pos == std::string::npos) {
-					DEBUG_LOG_ERROR("Impossibile interpretare la riga \"%s\" come istruzione di configurazione", line.c_str());
+					DEBUG_LOG_ERROR("Cannot interprete line \"%s\" as configuration instruction", line.c_str());
 					continue;
 				}
 
-				// Estraggo il token prima dell'uguale, e il valore dopo l'uguale
+				// Extracting the token befor the equal sign, and trimming it
 				string line_setting = line.substr(0, eq_pos);
 				trim(line_setting);
+				// Extracting the value after the equal sign, and trimming it
 				string line_value = line.substr(eq_pos + delimiter.length());
 				trim(line_value);
 
-				// Scorro su tutti i settings per capire a quale corrisponde
+				// Iterate over the settings list to find the setting with the same name
 				for (int sett_id = 0; sett_id < SETTINGID_END; sett_id++) {
 					Setting setting = Configurations::settings_list[sett_id];
 
-					// Verifico se la linea (trimmed) inizia con l'abbreviazione o il nome
+					// Check if the line (trimmed) starts with the abbreviation or the name
 					if (line_setting == setting.m_name || line_setting == setting.m_abbr) {
 						DEBUG_LOG("Identificata impostazione del valore del parametro con ID = %2d: <%s> = %s", setting.m_id, setting.m_name.c_str(), line_value.c_str());
 
-						// Spezzo la stringa dei valori nei valori corrispondenti
-						// Il delimitatore è la virgola
+						// Split the string of values in the corresponding values (with comma as delimiter)
 						auto const reg = std::regex{","};
 						auto const vec = std::vector<string>(
 						    std::sregex_token_iterator{begin(line_value), end(line_value), reg, -1},
@@ -372,11 +370,11 @@ namespace quicksc {
 			}
 		}
 
-		// Reset dell'Indice
+		// Index reset
 		this->m_session_index = 0;
 	}
 
-	/** Inizializzazione della lista di configurazioni */
+	/** Configurations list initialization */
 	const Configurations::Setting Configurations::settings_list[] = {
 			{ Testcases,					"Testcases", 								"#test", false },
 			{ ProblemType,					"Problem type", 							"problem", false },
@@ -399,33 +397,33 @@ namespace quicksc {
 			{ DrawSolutionAutomaton , 		"Draw solution automaton", 					"?dsolu", false },
 	};
 
-	/**
-	 * Metodo statico.
-	 * Restituisce il nome del parametro di configurazione.
+	/** 
+	 * Static method.
+	 * Returns the name of the configuration parameter.
 	 */
 	string Configurations::nameOf(const SettingID& id) {
 		return Configurations::getSetting(id).m_name;
 	}
 
-	/**
-	 * Metodo statico.
-	 * Restituisce la sigla identificativa del parametro di configurazione.
+	/** 
+	 * Static method.
+	 * Returns the identifying acronym of the configuration parameter.
 	 */
 	string Configurations::abbreviationOf(const SettingID& id) {
 		return Configurations::getSetting(id).m_abbr;
 	}
-
-	/**
-	 * Metodo statico.
-	 * Restituisce un flag booleano indicante se il valore del parametro deve
-	 * essere stampato in coda ai test.
+	
+	/** 
+	 * Static method.
+	 * Returns a boolean flag indicating whether the value of the parameter must
+	 * be printed at the end of the tests.
 	 */
 	bool Configurations::isTestParam(const SettingID& id) {
 		return Configurations::getSetting(id).m_test_param;
 	}
 
 	/**
-	 * Stampa i valori CORRENTI delle configurazioni attuali.
+	 * Prints the CURRENT configuration values
 	 */
 	string Configurations::getValueString() {
 		string result = "";
@@ -438,7 +436,7 @@ namespace quicksc {
 	}
 
 	/**
-	 * Stampa i valori (completi!) di tutte configurazioni.
+	 * Prints all the COMPLETE configuration values
 	 */
 	string Configurations::toString() {
 		string result = "Configurations:\n";
@@ -450,26 +448,25 @@ namespace quicksc {
 	}
 
 	/**
-	 * Restituisce una stringa contenente NOME e VALORE associati al parametro
-	 * passato in ingresso.
+	 * Returns a string containing NAME and VALUE associated with the parameter passed as input.
 	 */
 	string Configurations::toString(const SettingID& id) {
 		return (Configurations::abbreviationOf(id) + ":" + this->m_settings_instances[this->m_session_index].at(id)->toString());
 	}
 
 	/**
-	 * Imposta i parametri salvati all'interno delle configurazioni con la combinazione successiva
+	 * Sets the parameters saved inside the configurations with the next combination
 	 */
 	bool Configurations::nextTestCase() {
 		for (auto &pair : this->m_settings_instances[this->m_session_index]) {
-			// Se viene trovato un caso successivo, si restituisce TRUE
-			if (pair.second->nextCase()) { // Next case ha l'effetto collaterale di aumentare l'indice interno al parametro
+			// If the next case is found, return TRUE
+			if (pair.second->nextCase()) { // The "nextCase" method has the conditional effect of incrementing the index
 				return true;
 			}
 		}
-		// Se la combinazione di tutti i parametri è terminata, passo alla sessione successiva.
+		// If the configuration ends, increase the session index
 		this->m_session_index += 1;
-		// A questo punto, se il nuovo indice rappresenta una configurazione caricata in memoria, tutto ok. Altrimenti finisco
+		// If the index represents a valid session, continue. Otherwise, end the test and return FALSE
 		return (this->m_session_index < this->m_settings_instances.size());
 	}
 
@@ -477,22 +474,22 @@ namespace quicksc {
 	template <class T> T Configurations::valueOf(const SettingID& id) {
 		if (DEBUG_QUERY) {
 			DEBUG_ASSERT_TRUE(this->m_settings_instances[this->m_session_index].count(id));
-			DEBUG_LOG("Richiesta del valore di: %s", settings_list[int(id)].m_name.c_str());
+			DEBUG_LOG("Reqiested value of: %s", settings_list[int(id)].m_name.c_str());
 		}
 		SettingValue* associated_value_container = (this->m_settings_instances[this->m_session_index])[id];
 		Value value = associated_value_container->getValue();
 		switch (associated_value_container->getType()) {
 		case INT :
-			if (DEBUG_QUERY) { DEBUG_LOG("Valore restituito: %s", std::to_string(value.integer).c_str()); }
+			if (DEBUG_QUERY) { DEBUG_LOG("Returned value: %s", std::to_string(value.integer).c_str()); }
 			return static_cast<int>(value.integer);
 		case DOUBLE :
-			if (DEBUG_QUERY) { DEBUG_LOG("Valore restituito: %s", std::to_string(value.real).c_str()); }
+			if (DEBUG_QUERY) { DEBUG_LOG("Returned value: %s", std::to_string(value.real).c_str()); }
 			return static_cast<double>(value.real);
 		case BOOL :
-			if (DEBUG_QUERY) { DEBUG_LOG("Valore restituito: %s", std::to_string(value.flag).c_str()); }
+			if (DEBUG_QUERY) { DEBUG_LOG("Returned value: %s", std::to_string(value.flag).c_str()); }
 			return static_cast<bool>(value.flag);
 		default :
-			DEBUG_LOG_ERROR("Impossibile interpretare il valore %d", value.integer);
+			DEBUG_LOG_ERROR("Cannot parse value %d", value.integer);
 			return static_cast<int>(value.integer);
 		}
 	}

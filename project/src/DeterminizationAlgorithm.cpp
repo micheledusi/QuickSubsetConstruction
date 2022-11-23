@@ -1,12 +1,13 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * DeterminizationAlgorithm.cpp
  *
- * Project: TranslatedAutomata
  *
- * Interfaccia per un generico algoritmo di determinizzazione.
- * La definizione della classe astratta richiede l'implementazione di un metodo per l'esecuzione.
- * Inoltre, il costruttore richiede di specificare un nome abbreviato (sigla) e un nome completo per l'algoritmo.
- *
+ * This file implements the DeterminizationAlgorithm abstract class.
+ * The definition of the abstract class requires one method that will be implemented by the subclasses.
+ * In addition, the constructor requires to specify an abbreviation for the algorithm and a complete name.
  */
 
 #include "DeterminizationAlgorithm.hpp"
@@ -16,21 +17,21 @@
 namespace quicksc {
 
     /**
-     * Costruttore base.
-     * Istanzia nome e abbreviazione dell'algoritmo.
+     * Base constructor.
+     * It instantiates the name and abbreviation of the algorithm.
      */
     DeterminizationAlgorithm::DeterminizationAlgorithm(string abbr, string name) {
         //transform(abbr.begin(), abbr.end(), abbr.begin(), ::tolower);
         this->m_abbr = abbr;
         this->m_name = name;
 
-        // Azzero le statistiche, per sicurezza.
+        // Resetting the statistics
         this->m_runtime_stats_values = map<RuntimeStat, double>();
         this->resetRuntimeStatsValues();
     }
 
     /**
-     * Distruttore vuoto.
+     * Empty destructor.
      */
     DeterminizationAlgorithm::~DeterminizationAlgorithm() {}
 
@@ -43,32 +44,35 @@ namespace quicksc {
     };
 
     /**
-     * Azzera le statistiche di esecuzione.
-     * Le statistiche di esecuzione, per definizione, sono legate ad una singola esecuzione. Non vengono mantenute da un'esecuzione all'altra. Per questo motivo, questo metodo viene chiamato prima di ogni avvio dell'algoritmo mediante il metodo "run".
+     * Resets the runtime statistics.
+     * The runtime statistics, by definition, are related to a single execution. They are not maintained from one execution to the next. 
+     * For this reason, this method is called before each start of the algorithm using the "run" method.
      */
     void DeterminizationAlgorithm::resetRuntimeStatsValues() {
         this->m_runtime_stats_values = map<RuntimeStat, double>();
     };
 
     /**
-     * Restituisce un vettore di statistiche calcolate a runtime dall'algoritmo.
-     * Ciascuna sottoclasse deve implementare (se usa tale funzionalità) questo metodo in modo che restituisca le statistiche utilizzate.
+     * Returns a vector of runtime statistics calculated by the algorithm.
+     * Each subclass must implement (if it uses this functionality) this method so that it returns the statistics used.
      */
 	vector<RuntimeStat> DeterminizationAlgorithm::getRuntimeStatsList() {
         return vector<RuntimeStat>();
     }
-
+    
     /**
-     * Restituisce la mappa di statistiche di runtime, come valore.
-     * Questa viene calcolata ad ogni esecuzione, sulla base dei risultati dell'esecuzione. Le statistiche di runtime sono statistiche particolari che vengono computate direttamente dall'algoritmo, e non a posteriori.
+     * Returns the runtime statistics map, as value.
+     * This is calculated at each execution, based on the results of the execution. 
+     * The runtime statistics are special statistics that are computed directly by the algorithm, and not a posteriori.
      */
     map<RuntimeStat, double> DeterminizationAlgorithm::getRuntimeStatsValues() {
         return this->m_runtime_stats_values;
     };
 
     /**
-     * Restituisce il riferimento alla mappa di statistiche di runtime.
-     * Questa viene calcolata ad ogni esecuzione, sulla base dei risultati dell'esecuzione. Le statistiche di runtime sono statistiche particolari che vengono computate direttamente dall'algoritmo, e non a posteriori.
+     * Returns a reference to the runtime statistics map.
+     * This is calculated at each execution, based on the results of the execution. 
+     * The runtime statistics are special statistics that are computed directly by the algorithm, and not a posteriori.
      */
     map<RuntimeStat, double>& DeterminizationAlgorithm::getRuntimeStatsValuesRef() {
         return this->m_runtime_stats_values;

@@ -1,14 +1,16 @@
 /*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * Main.cpp
  *
- * Project: TranslatedAutomata
  *
- * Main del progetto. Gestisce il flusso di esecuzione in maniera
- * centralizzata, richiamando le funzioni necessarie.
- * Attualmente si occupa di generare un automa secondo i parametri impostati,
- * quindi genera una traduzione e infine esegue l'algoritmo "Embedded
- * Subset Construction".
- * Si vedano le rispettive classi per informazioni più dettagliate.
+ * This file contains the main function of the program.
+ * It is used to test the algorithms implemented in the project, managing the execution flow in a centralized way.
+ * At the moment, it compares the exectution of two algorithms: the Quick Subset Construction algorithm and the Subset Construction algorithm.
+ * It tests both on a determinizationi problem, i.e. a problem where a NFA has to be converted into a DFA.
+ * 
+ * For further information, refer to the respective classes.
  *
  */
 
@@ -31,17 +33,16 @@ using namespace quicksc;
 
 int main(int argc, char **argv) {
 
-	DEBUG_MARK_PHASE( "Translated Automaton - Main" ) {
+	DEBUG_MARK_PHASE( "Quick Subset Construction - Main" ) {
 
 		Configurations* config;
-		DEBUG_MARK_PHASE("Caricamento delle configurazioni") {
-			// Creazione delle configurazioni
+		DEBUG_MARK_PHASE("Configurations loading") {
 			config = new Configurations();
 			config->load(CONFIG_FILENAME);
 		}
 
 		vector<DeterminizationAlgorithm*> algorithms;
-		DEBUG_MARK_PHASE("Creazione degli algoritmi") {
+		DEBUG_MARK_PHASE("Algorithms loading") {
 			algorithms.push_back(new SubsetConstruction());
 			//algorithms.push_back(new EmbeddedSubsetConstruction(config));
 			algorithms.push_back(new QuickSubsetConstruction(config));
@@ -50,17 +51,21 @@ int main(int argc, char **argv) {
 		do {
 			std::cout << std::endl << "_______________________________________________________________________|" << std::endl << std::endl << std::endl;
 
-			// Creazione del sistema di risoluzione
+			// Creating the problem solver instance
 			ProblemSolver solver = ProblemSolver(config, algorithms);
 
-			// Risoluzione effettiva
+			// Solving the series of problems. The length of the series is specified in the configuration file (as the "Testcases" number)
 			solver.solveSeries(config->valueOf<int>(Testcases));
 
-			// Presentazione delle statistiche risultanti
+			// Presenting the results and the statistics
 			solver.getResultCollector()->presentResults();
 			std::cout << std::endl;
 
 		} while (config->nextTestCase());
+
+
+		/*
+		Previous version of a program to create a specific automaton and test the algorithms on it.
 
 		// Automaton* nfa = new Automaton();
 		// State* s5 = new State("5");
@@ -98,7 +103,7 @@ int main(int argc, char **argv) {
 		//
 		// AutomataDrawer drawer = AutomataDrawer(dfa);
 		// std::cout << drawer.asString() << std::endl;
-
+		*/
 	}
 
 	return 0;

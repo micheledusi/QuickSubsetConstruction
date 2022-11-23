@@ -1,14 +1,17 @@
-/******************************************************************************
+/*
+ * Michele Dusi, Gianfranco Lamperti
+ * Quick Subset Construction
+ * 
  * embedded_subset_construction.hpp
  *
- * Project: TranslatedAutomata
- *
- * File sorgente della classe "EmbeddedSubsetConstruction" che implementa l'algoritmo
- * "Embedded Subset Construction" per la traduzione di un automa DFA.
- * Per maggiori informazioni sul funzionamento dell'algoritmo, si veda la documentazione
- * del metodo "run".
- *
- ******************************************************************************/
+ * 
+ * This file implements the EmbeddedSubsetConstruction class.
+ * The EmbeddedSubsetConstruction class is a subclass of the DeterminizationAlgorithm class, used for a previous study on the determinization of finite automata.
+ * This is <b>not used</b> in the current version of the Quick Subset Construction algorithm.
+ * 
+ * NOTE: This represents an older module of the project. Do not refer to this.
+ * It is kept here for historical reasons.
+ */
 
 #include "EmbeddedSubsetConstruction.hpp"
 
