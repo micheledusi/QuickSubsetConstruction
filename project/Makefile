@@ -18,7 +18,7 @@ OBJDIR = ./obj
 # Choosing the proper OS commands
 ifeq ($(OS),Windows_NT)			# WINDOWS Operative System
 	CC = g++
-	CFLAGS=-I$(INCDIR) -g -std=c++17
+	CFLAGS=-I$(INCDIR) -g -std=c++20
 	RM = cmd //C del
 	SOURCES := $(wildcard $(SRCDIR)/*.cpp)
 	HEADERS := $(wildcard $(INCDIR)/*.hpp)
@@ -27,7 +27,7 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)		# LINUX Operative System
 		CC = g++
-		CFLAGS=-I$(INCDIR) -g -std=c++17	
+		CFLAGS=-I$(INCDIR) -g -std=c++20
 		RM = rm -f
 		SOURCES := $(shell find $(SRCDIR) -name '*.cpp')
 		HEADERS := $(shell find $(INCDIR) -name '*.hpp')
