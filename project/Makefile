@@ -5,6 +5,7 @@
 #      By Michele Dusi and Gianfranco Lamperti
 #####################################################
 
+
 # Name of the executable file
 OUTPUT = qsc
 
@@ -14,14 +15,28 @@ BINDIR = ./bin
 INCDIR = ./include
 OBJDIR = ./obj
 
-# Compilation flags
-CC = g++
-CFLAGS=-I$(INCDIR) -g -std=c++17
+# Choosing the proper OS commands
+ifeq ($(OS),Windows_NT)			# WINDOWS Operative System
+	CC = g++
+	CFLAGS=-I$(INCDIR) -g -std=c++17
+	RM = cmd //C del
+	SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+	HEADERS := $(wildcard $(INCDIR)/*.hpp)
+	OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)		# LINUX Operative System
+		CC = g++
+		CFLAGS=-I$(INCDIR) -g -std=c++17	
+		RM = rm -f
+		SOURCES := $(shell find $(SRCDIR) -name '*.cpp')
+		HEADERS := $(shell find $(INCDIR) -name '*.hpp')
+		OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
+	endif
+endif
 
-# Base name of the source files
-SOURCES := $(shell find $(SRCDIR) -name '*.cpp')					# Sources ".cpp"
-HEADERS := $(shell find $(INCDIR) -name '*.hpp')					# Headers ".hpp"
-OBJECTS := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))	# Objects ".o"
+# Main target
+all: $(BINDIR)/$(OUTPUT)
 
 # Compiling the source files into object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS)
@@ -36,5 +51,5 @@ $(BINDIR)/$(OUTPUT): $(OBJECTS)
 # 	Usage: "make clean"
 .PHONY: clean
 clean:
-	rm -f $(OBJDIR)/*.o
-	rm -f $(BINDIR)/*
+	$(RM) $(OBJDIR)/*.o
+	$(RM) $(BINDIR)/*
