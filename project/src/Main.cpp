@@ -21,6 +21,7 @@
 #include "AutomataDrawer.hpp"
 #include "Debug.hpp"
 #include "DeterminizationAlgorithm.hpp"
+#include "DeterminizationWithEpsilonRemovalAlgorithm.hpp"
 #include "EmbeddedSubsetConstruction.hpp"
 #include "ProblemSolver.hpp"
 #include "Properties.hpp"
@@ -46,6 +47,8 @@ int main(int argc, char **argv) {
 			algorithms.push_back(new SubsetConstruction());
 			//algorithms.push_back(new EmbeddedSubsetConstruction(config));
 			algorithms.push_back(new QuickSubsetConstruction(config));
+			algorithms.push_back(new DeterminizationWithEpsilonRemovalAlgorithm(new NaiveEpsilonRemovalAlgorithm(), new SubsetConstruction()));
+			algorithms.push_back(new DeterminizationWithEpsilonRemovalAlgorithm(new NaiveEpsilonRemovalAlgorithm(), new QuickSubsetConstruction(config)));
 		}
 
 		do {

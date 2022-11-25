@@ -36,7 +36,7 @@ namespace quicksc {
 
 	public:
         DeterminizationAlgorithm(string abbr, string name);
-        virtual ~DeterminizationAlgorithm();            // Normal virtual method (destructor) -> it can be overwritten
+        virtual ~DeterminizationAlgorithm();            	// Normal virtual method (destructor) -> it can be overwritten
 
         const string& abbr();
         const string& name();
@@ -45,7 +45,7 @@ namespace quicksc {
 		virtual vector<RuntimeStat> getRuntimeStatsList();
 		map<RuntimeStat, double> getRuntimeStatsValues();
 
-		virtual Automaton* run(Automaton* nfa) = 0;       // Pure virtual method -> it must be implemented by the subclasses
+		virtual Automaton* run(Automaton* nfa) = 0;       	// Pure virtual method -> it must be implemented by the subclasses
 
 	};
 }
