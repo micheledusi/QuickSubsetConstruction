@@ -853,4 +853,29 @@ namespace quicksc {
 		return !this->isSafe(singularity_state, singularity_label);
 	}
 
+	/**
+	 * This method clones the state, that is, it creates a new state with the same name, distance, finality.
+	 * 
+	 * ATTENTION: it does NOT clone the transitions.
+	 * Cloning them would require the knowledge of all the automaton states, which is not available.
+	 */
+	State* State::clone() {
+		State* clone = new State(this->m_name, this->m_final);
+		clone->setDistance(this->m_distance);
+		return clone;
+	}
+
+	/**
+	 * This method clones the state, that is, it creates a new state with the same name, distance, finality.
+	 * 
+	 * ATTENTION: it does NOT clone the transitions.
+	 * ATTENTION: it does NOT clone the extension. The extension is just COPIED, that is, the same states are referenced.
+	*/
+	ConstructedState* ConstructedState::clone() {
+		ConstructedState* clone = new ConstructedState(this->m_extension);
+		clone->setFinal(this->m_final);
+		clone->setDistance(this->m_distance);
+		return clone;
+	}
+
 }

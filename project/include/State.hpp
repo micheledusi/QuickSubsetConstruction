@@ -89,6 +89,8 @@ namespace quicksc {
 
 		string toString() const;
 
+		virtual State* clone();
+
 		bool operator<(const State &other) const;
 		bool operator==(const State &other) const;
 		bool operator!=(const State &other) const;
@@ -142,6 +144,7 @@ namespace quicksc {
 		Extension computeLClosure(string label);
 		void replaceExtensionWith(Extension &new_ext);
 		bool isExtensionEmpty();
+		ConstructedState* clone() override;
 
 		//bool isSafe(Singularity* singularity);
 		bool isSafe(State* singularity_state, string singularity_label);

@@ -57,6 +57,7 @@ namespace quicksc {
         const Alphabet getAlphabet();
         bool connectStates(State *from, State *to, string label);
         bool connectStates(string from, string to, string label);
+        Automaton* clone();
 
         bool operator==(Automaton& other);
 

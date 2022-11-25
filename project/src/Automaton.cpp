@@ -330,6 +330,54 @@ namespace quicksc {
     	return this->connectStates(getState(from), getState(to), label);
     }
 
+    /**
+     * Clone the automaton.
+     * The method returns a pointer to the new automaton, which is a copy of the first.
+     * The method relies on the clone method of the State class, which allows to copy a State object
+     * but without messing up with the transitions.
+     */
+    Automaton* Automaton::clone() {
+        // Create the new automaton
+        Automaton* clone = new Automaton();
+
+        // Create a map that will contain the correspondence between the states of the original automaton and the new ones
+        map<State*, State*> correspondence = map<State*, State*>();
+
+        // For each state of the automaton
+        for (State* s : this->m_states) {
+            // Clone the state
+            State* new_state = s->clone();
+            // Add the new state to the new automaton
+            clone->addState(new_state);
+            // Add the correspondence to the map
+            correspondence[s] = new_state;
+        }
+
+        // For each state of the automaton
+        for (State* s : this->m_states) {
+            // Get the new state
+            State* new_state = correspondence[s];
+
+            // If the state is the initial state, set it as the initial state of the new automaton
+            if (s == m_initial_state) {
+                clone->setInitialState(new_state);
+            }
+
+            // For each transition of the state
+            for (auto &pair: s->getExitingTransitions()) {
+                // For each state reached by the transition
+                for (State* child: pair.second) {
+                    // Get the new state
+                    State* new_child = correspondence[child];
+
+                    // Add the transition to the new automaton
+                    clone->connectStates(new_state, new_child, pair.first);
+                }
+            }
+        }
+    	return clone;
+    }
+
     /** 
      * Equality operator for automata. 
      */
