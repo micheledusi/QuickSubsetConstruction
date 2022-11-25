@@ -78,7 +78,7 @@ namespace quicksc {
 	/**
 	 * This macro is used to return errors in the library.
 	*/
-	#define _DEBUG_ERROR()				printf("ERRORE: impossibile utilizzare questa funzionalità di debug al momento.\n")
+	#define _DEBUG_ERROR()				printf("ERROR: cannot use this debug functionality at the moment.\n")
 
 
 	// Checks for the debug mode
