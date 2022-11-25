@@ -19,6 +19,11 @@
 #define QSC_ABBR        "qsc"
 #define QSC_NAME        "Quick Subset Construction"
 
+#define NER_ABBR        "ner"
+#define NER_NAME        "Naive Epsilon Removal"
+#define CER_ABBR        "cer"
+#define CER_NAME        "Closuring Epsilon Removal"
+
 // Results, folders and files
 #define DIR_RESULTS 						"results/"
 #define FILE_NAME_ORIGINAL_AUTOMATON 		"original"
