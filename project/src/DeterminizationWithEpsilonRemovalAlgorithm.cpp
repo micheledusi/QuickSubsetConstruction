@@ -14,7 +14,9 @@
 
 #include "DeterminizationWithEpsilonRemovalAlgorithm.hpp"
 
-//#define DEBUG_MODE
+#include "AutomataDrawer.hpp"
+
+#define DEBUG_MODE
 
 #include "Debug.hpp"
 
@@ -65,11 +67,15 @@ namespace quicksc {
         DEBUG_MARK_PHASE("Epsilon removal with <%s>", this->m_epsilon_removal_algorithm->name().c_str()) {
             // Note: the epsilon removal algorithm is applied to the clone of the NFA
             // This procedure works directly on the NFA, so we need to clone it
-            Automaton* nfa_without_epsilons = this->m_epsilon_removal_algorithm->run(nfa_clone);
+            nfa_without_epsilons = this->m_epsilon_removal_algorithm->run(nfa_clone);
         }
 
+        DEBUG_LOG("NFA without epsilons:");
+        IF_DEBUG_ACTIVE(AutomataDrawer* drawer = new AutomataDrawer(nfa_without_epsilons); )
+        DEBUG_LOG("%s", drawer->asString().c_str());
+
         DEBUG_MARK_PHASE("Determinization with <%s>", this->m_determinization_algorithm->name().c_str()) {
-            Automaton* dfa = this->m_determinization_algorithm->run(nfa_without_epsilons);
+            dfa = this->m_determinization_algorithm->run(nfa_without_epsilons);
         }
 
         delete nfa_without_epsilons;  // The NFA without epsilon transitions is removed

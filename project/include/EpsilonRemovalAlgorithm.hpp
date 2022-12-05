@@ -38,6 +38,10 @@ namespace quicksc {
     /**
      * This class implements the "epsilon removal" algorithm in a simple way.
      * Each epsilon transition is managed one by one, without aggregating interventions over transitions.
+     * 
+     * ATTENTION: This algorithm DOES NOT REMOVE EVERY EPSILON TRANSITIONS. It reduces the overall number, but it does not guarantee that the e-NFA is epsilon-free.
+     * For instance, the initial state of the e-NFA will retain its epsilon transitions.
+     * Also, if multiple epsilon transitions are exiting a state and the configuration allows it, the algorithm will add other epsilon transitions and it will not remove them.
      */
     class NaiveEpsilonRemovalAlgorithm : public EpsilonRemovalAlgorithm {
 
@@ -54,11 +58,11 @@ namespace quicksc {
      * Epsilon transitions are managed with the epsilon-closure, aggregating interventions over transitions.
      * This algorithm can delete multiple epsilon transitions at once.
      */
-    class ClosuringEpsilonRemovalAlgorithm : public EpsilonRemovalAlgorithm {
+    class GlobalEpsilonRemovalAlgorithm : public EpsilonRemovalAlgorithm {
 
     public:
-        ClosuringEpsilonRemovalAlgorithm();
-        virtual ~ClosuringEpsilonRemovalAlgorithm();
+        GlobalEpsilonRemovalAlgorithm();
+        virtual ~GlobalEpsilonRemovalAlgorithm();
 
         Automaton* run(Automaton* e_nfa);
 

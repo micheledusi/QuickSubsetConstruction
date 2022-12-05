@@ -378,6 +378,23 @@ namespace quicksc {
     	return clone;
     }
 
+    /**
+     * Recomputes all the distances of the states of the automaton from the initial state.
+     * In order to do this, it uses the BFS algorithm, resetting all the distances in advance.
+     * Then it calls the initDistanceRecursive method, which will perform the actual computation.
+     *
+     */
+    void Automaton::recomputeAllDistances() {
+        // Reset all the distances
+        for (State* s : this->m_states) {
+            s->setDistance(DEFAULT_VOID_DISTANCE);
+        }
+
+        // Set the distance of the initial state to 0
+        // And sets the distance of all the other states recursively
+        this->m_initial_state->initDistancesRecursively(0);
+    }
+
     /** 
      * Equality operator for automata. 
      */

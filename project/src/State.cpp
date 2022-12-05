@@ -480,7 +480,12 @@ namespace quicksc {
 	 * a traversal of the automaton of type breadth-first (breadth-first traversal).
 	 * 
 	 * NOTE: this method is called just after the construction of an automaton, to define the distances of all the states;
-	 * it is therefore important that all the states belong to the same automaton, and that all have a distance not yet initialized (ie equal to the default value).
+	 * it is therefore important that:
+	 * 1) all the states belong to the same automaton
+	 * 2) all the states have a distance not yet initialized (ie equal to the default value).
+	 * 
+	 * ATTENTION: please, reset the distances of all the states before calling this method.
+	 * Otherwise, it won't work.
 	 */
     void State::initDistancesRecursively(int root_distance) {
         this->setDistance(root_distance);
@@ -494,6 +499,7 @@ namespace quicksc {
 
             for (auto &trans: current_state->getExitingTransitionsRef()) {
                 for (State* child : trans.second) {
+					// If the distance is not yet initialized
                     if (child->getDistance() == DEFAULT_VOID_DISTANCE) {
                         child->setDistance(current_state->getDistance() + 1);
                         updated_list.push_back(child);
@@ -503,9 +509,6 @@ namespace quicksc {
         }
     }
 
-    /**
-     * Restituisce la minima distanza fra tutte le distanze dei genitori.
-     */
 	/**
 	 * Returns the minimum distance between all the distances of the parents.
 	 */
@@ -544,7 +547,8 @@ namespace quicksc {
 			for (auto &pair: m_exiting_transitions) {
 				string label = pair.first;
 				for (State* state: pair.second) {
-					result += "\t━━┥" + SHOW(label) + "┝━━▶ " + state->getName() + "\n";
+					// result += "\t━━┥" + SHOW(label) + "┝━━▶ " + state->getName() + "\n";
+					result += "\t--|" + SHOW(label) + "|--> " + state->getName() + "\n";
 //					result += "\t━━┥" + SHOW(label) + "┝━━▶ " + state->getName() + "\033[35m[id = " + (std::to_string((long int)state)) + "]\033[0m" + "\n";
 				}
 			}

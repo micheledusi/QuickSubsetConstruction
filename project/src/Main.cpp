@@ -19,7 +19,6 @@
 
 #include "Automaton.hpp"
 #include "AutomataDrawer.hpp"
-#include "Debug.hpp"
 #include "DeterminizationAlgorithm.hpp"
 #include "DeterminizationWithEpsilonRemovalAlgorithm.hpp"
 #include "EmbeddedSubsetConstruction.hpp"
@@ -27,6 +26,8 @@
 #include "Properties.hpp"
 #include "QuickSubsetConstruction.hpp"
 #include "SubsetConstruction.hpp"
+
+#include "Debug.hpp"
 
 using std::set;
 
@@ -42,10 +43,11 @@ int main(int argc, char **argv) {
 			config->load(CONFIG_FILENAME);
 		}
 
+		/*
 		vector<DeterminizationAlgorithm*> algorithms;
 		DEBUG_MARK_PHASE("Algorithms loading") {
 			algorithms.push_back(new SubsetConstruction());
-			//algorithms.push_back(new EmbeddedSubsetConstruction(config));
+			algorithms.push_back(new EmbeddedSubsetConstruction(config));
 			algorithms.push_back(new QuickSubsetConstruction(config));
 			algorithms.push_back(new DeterminizationWithEpsilonRemovalAlgorithm(new NaiveEpsilonRemovalAlgorithm(), new SubsetConstruction()));
 			algorithms.push_back(new DeterminizationWithEpsilonRemovalAlgorithm(new NaiveEpsilonRemovalAlgorithm(), new QuickSubsetConstruction(config)));
@@ -63,50 +65,55 @@ int main(int argc, char **argv) {
 			// Presenting the results and the statistics
 			solver.getResultCollector()->presentResults();
 			std::cout << std::endl;
-
 		} while (config->nextTestCase());
-
-
-		/*
-		Previous version of a program to create a specific automaton and test the algorithms on it.
-
-		// Automaton* nfa = new Automaton();
-		// State* s5 = new State("5");
-		// State* s6 = new State("6");
-		// State* s7 = new State("7");
-		// State* s8 = new State("8");
-		// State* s9 = new State("9", true);
-		//
-		// s5->connectChild(EPSILON, s7);
-		// s5->connectChild("d", s6);
-		//
-		// s6->connectChild(EPSILON, s7);
-		// s6->connectChild(EPSILON, s8);
-		//
-		// s7->connectChild("e", s8);
-		//
-		// s8->connectChild(EPSILON, s8);
-		// s8->connectChild("b", s9);
-		//
-		// s9->connectChild(EPSILON, s8);
-		// s9->connectChild("d", s8);
-		// s9->connectChild("d", s7);
-		//
-		// nfa->addState(s5);
-		// nfa->addState(s6);
-		// nfa->addState(s7);
-		// nfa->addState(s8);
-		// nfa->addState(s9);
-		//
-		// nfa->setInitialState(s5);
-		// s5->initDistancesRecursively(0);
-		//
-		// QuickSubsetConstruction* qsc = new QuickSubsetConstruction(config);
-		// Automaton* dfa = qsc->run(nfa);
-		//
-		// AutomataDrawer drawer = AutomataDrawer(dfa);
-		// std::cout << drawer.asString() << std::endl;
 		*/
+
+		
+		// Previous version of a program to create a specific automaton and test the algorithms on it.
+
+		Automaton* nfa = new Automaton();
+		State* s0 = new State("0");
+		State* s1 = new State("1");
+		State* s2 = new State("2", true);
+		State* s3 = new State("3");
+		State* s4 = new State("4");
+		
+		nfa->addState(s0);
+		nfa->addState(s1);
+		nfa->addState(s2);
+		nfa->addState(s3);
+		nfa->addState(s4);
+		
+		s0->connectChild(EPSILON, s2);
+		s0->connectChild("d", s1);
+		
+		s1->connectChild(EPSILON, s2);
+		s1->connectChild(EPSILON, s3);
+		
+		s2->connectChild("e", s3);
+		
+		s3->connectChild(EPSILON, s3);
+		s3->connectChild("b", s4);
+		
+		s4->connectChild(EPSILON, s3);
+		s4->connectChild("d", s3);
+		s4->connectChild("d", s1);
+
+		s3->connectChild("b", s2);
+		
+		nfa->setInitialState(s0);
+		// s0->initDistancesRecursively(0);	// Called automatically by Automaton::setInitialState()
+
+		AutomataDrawer nfa_drawer = AutomataDrawer(nfa);
+		std::cout << nfa_drawer.asString() << std::endl;
+		
+		//QuickSubsetConstruction* qsc = new QuickSubsetConstruction(config);
+		DeterminizationAlgorithm* erem_sc = new DeterminizationWithEpsilonRemovalAlgorithm(new GlobalEpsilonRemovalAlgorithm(), new SubsetConstruction());
+		Automaton* dfa = erem_sc->run(nfa);
+		
+		AutomataDrawer dfa_drawer = AutomataDrawer(dfa);
+		std::cout << dfa_drawer.asString() << std::endl;
+		
 	}
 
 	return 0;
