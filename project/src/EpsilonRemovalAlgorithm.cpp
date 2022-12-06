@@ -201,7 +201,7 @@ namespace quicksc {
                     }
 
                     // We create the new epsilon transition
-                    bool transition_added = e_nfa->connectStates(state, eps_grandchild, EPSILON);
+                    bool transition_added = state->connectChild(EPSILON, eps_grandchild);
 
                     if (transition_added) {
                         DEBUG_LOG("\t\t\tAdded epsilon transition from state %s to state %s.", state->getName().c_str(), eps_grandchild->getName().c_str());
@@ -290,8 +290,31 @@ namespace quicksc {
             }
         }
 
-        // Here we should setup the final states, but it's not necessary for the determinization
-        /** TODO: setup final states **/
+        // Here we setup the final states
+        // A state is final if:
+        // - it is final
+        // - it is reachable from a final state by epsilon transitions
+        DEBUG_LOG("Starting the final states setup phase.");
+        deque<State*> potentially_final_states = deque<State*>();
+        for (State* state : e_nfa->getStatesList()) {
+            if (state->isFinal()) {
+                potentially_final_states.push_back(state);
+            }
+        }
+        // While there are final states to process
+        while (!potentially_final_states.empty()) {
+            State* final_state = potentially_final_states.front();
+            potentially_final_states.pop_front();
+
+            // For each epsilon-parent of the current state
+            for (State* eps_parent : final_state->getParents(EPSILON)) {
+                // If the epsilon parent is not already final, we add it to the list of final states
+                if (!eps_parent->isFinal()) {
+                    eps_parent->setFinal(true);
+                    potentially_final_states.push_back(eps_parent);
+                }
+            }
+        }
 
         // Finally, we remove all epsilon transitions
         DEBUG_LOG("Removing all epsilon transitions.");

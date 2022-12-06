@@ -1,14 +1,14 @@
 // Testcases
 
 start session
-    #test = 1
-    #rseed = 1670317907
+    #test = 100
+    #rseed = 42
     // "structure 0" means random automata structure
     structure = 0
     #alpha = 5
-    #size = 5
+    #size = 100
     %transitions = 0.5
-    %epsilon = 0.5
-    ?porig = 1
-    ?psolu = 1
+    %epsilon = 0.8
+    ?porig = 0
+    ?psolu = 0
 end session

@@ -56,7 +56,7 @@ namespace quicksc {
         string getName() const;
         bool isFinal();
         void setFinal(bool final);
-		void connectChild(string label, State* child);
+		bool connectChild(string label, State* child);
 		void disconnectChild(string label, State* child);
 		void detachAllTransitions();
 		State* getChild(string label);

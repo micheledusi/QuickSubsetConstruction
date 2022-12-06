@@ -45,18 +45,21 @@ int main(int argc, char **argv) {
 
 		vector<DeterminizationAlgorithm*> algorithms;
 		DEBUG_MARK_PHASE("Algorithms loading") {
-			DeterminizationAlgorithm* sc = new SubsetConstruction();
-			//DeterminizationAlgorithm* esc = new EmbeddedSubsetConstruction(config);
-			DeterminizationAlgorithm* qsc = new QuickSubsetConstruction(config);
+			// Algorithms for the epsilon removal
 			EpsilonRemovalAlgorithm* ner = new NaiveEpsilonRemovalAlgorithm();
 			EpsilonRemovalAlgorithm* ger = new GlobalEpsilonRemovalAlgorithm();
+
+			// Algorithms for the determinization
+			DeterminizationAlgorithm* sc = new SubsetConstruction();
+//			DeterminizationAlgorithm* esc = new EmbeddedSubsetConstruction(config);
+			DeterminizationAlgorithm* qsc = new QuickSubsetConstruction(config);
 			DeterminizationAlgorithm* sc_with_ner = new DeterminizationWithEpsilonRemovalAlgorithm(ner, sc);
 			DeterminizationAlgorithm* sc_with_ger = new DeterminizationWithEpsilonRemovalAlgorithm(ger, sc);
 			DeterminizationAlgorithm* qsc_with_ner = new DeterminizationWithEpsilonRemovalAlgorithm(ner, qsc);
 			DeterminizationAlgorithm* qsc_with_ger = new DeterminizationWithEpsilonRemovalAlgorithm(ger, qsc);
 
 			algorithms.push_back(sc);
-			//algorithms.push_back(esc);
+//			algorithms.push_back(esc);
 			algorithms.push_back(qsc);
 			algorithms.push_back(sc_with_ner);
 			algorithms.push_back(sc_with_ger);

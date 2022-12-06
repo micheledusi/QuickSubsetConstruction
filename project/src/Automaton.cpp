@@ -311,6 +311,8 @@ namespace quicksc {
      * Inserts a transition between the two states marked with the label passed as a parameter.
      * The method works only if both states are part of the automaton, and in this case it returns TRUE.
      * Otherwise it returns FALSE.
+     * 
+     * ATTENTION: The return values is NOT related to the fact that the transition has been inserted or not.
      */
     bool Automaton::connectStates(State *from, State *to, string label) {
     	if (this->hasState(from) && this->hasState(to)) {

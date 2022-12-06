@@ -84,22 +84,42 @@ namespace quicksc {
 	 * labeled with the label "label" passed as parameter.
 	 * 
 	 * NOTE: if the transition already exists, it is *not* added again.
+	 * 
+	 * @param state The state to be linked to the current state.
+	 * @param label The label of the transition.
+	 * @return True if the transition has been added, false otherwise.
 	 */
-	void State::connectChild(string label, State* child)	{
+	bool State::connectChild(string label, State* child)	{
 		bool flag_new_insertion = false;
+
+		// If the current state has no outgoing transitions labeled with "label",
 		if (this->m_exiting_transitions.count(label) == 0) {
+			// We setup a new set of children labeled with "label"
 			this->m_exiting_transitions.insert({label, set<State*>()});
+			// Then, we flag the insertion as new
 			flag_new_insertion = true;
 		}
 
+		// If the child state has no incoming transitions labeled with "label",
 		if (child->m_incoming_transitions.count(label) == 0) {
+			// We setup a new set of parents labeled with "label"
 			child->m_incoming_transitions.insert({label, set<State*>()});
+			// Then, we flag the insertion as new
 			flag_new_insertion = true;
 		}
 
+		// If the insertion is new (i.e. no transition with this label existed before),
+		// Or if another ell-transition exists, but not this one in particular
 		if (flag_new_insertion || !this->hasExitingTransition(label, child)) {
+			// We add the transition in both sense
 			this->m_exiting_transitions[label].insert(child);
 			child->m_incoming_transitions[label].insert(getThis());
+			return true;
+		}
+		else {
+			// Otherwise, we do nothing
+			// The transition already exists
+			return false;
 		}
 	}
 
