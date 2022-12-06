@@ -23,7 +23,7 @@
 #include <deque>
 #include <algorithm>
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 #include "Debug.hpp"
 
@@ -129,7 +129,7 @@ namespace quicksc {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // GlobalEpsilonRemovalAlgorithm
 
-    GlobalEpsilonRemovalAlgorithm::GlobalEpsilonRemovalAlgorithm() : EpsilonRemovalAlgorithm(CER_ABBR, CER_NAME) {}
+    GlobalEpsilonRemovalAlgorithm::GlobalEpsilonRemovalAlgorithm() : EpsilonRemovalAlgorithm(GER_ABBR, GER_NAME) {}
 
     GlobalEpsilonRemovalAlgorithm::~GlobalEpsilonRemovalAlgorithm() {}
 
@@ -291,7 +291,7 @@ namespace quicksc {
         }
 
         // Here we should setup the final states, but it's not necessary for the determinization
-        // TODO: setup final states
+        /** TODO: setup final states **/
 
         // Finally, we remove all epsilon transitions
         DEBUG_LOG("Removing all epsilon transitions.");

@@ -12,6 +12,7 @@
 
 #include <fstream>
 #include <regex>
+#include <ctime>
 
 #include "AutomataGenerator.hpp"
 #include "ProblemGenerator.hpp"
@@ -238,7 +239,9 @@ namespace quicksc {
 
 	void Configurations::loadDefault() {
 		// Testcase number
-		load(Testcases, 100);
+		load(Testcases, 2);
+		// Random seed
+		load(RandomSeed, (int) time(0));				// The cast is necessary for the "load"	method, because "AtomicSettingValue" accepts only integers, doubles and booleans
 
 		// Problem properties
 		load(ProblemType, Problem::DETERMINIZATION_PROBLEM);
@@ -377,6 +380,7 @@ namespace quicksc {
 	/** Configurations list initialization */
 	const Configurations::Setting Configurations::settings_list[] = {
 			{ Testcases,					"Testcases", 								"#test", false },
+			{ RandomSeed, 					"Random seed", 								"#rseed", false },
 			{ ProblemType,					"Problem type", 							"problem", false },
 			{ AlphabetCardinality,			"Alphabet cardinality", 					"#alpha", true },
 			{ EpsilonPercentage , 			"Epsilon percentage", 						"%epsilon", true },

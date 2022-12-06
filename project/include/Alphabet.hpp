@@ -24,7 +24,7 @@
 
 // Epsilon label definition
 #define EPSILON ""	// By making it the empty string, it figures as the first element of the alphabet (and the first element in transitions)
-#define EPSILON_PRINT "\033[1;34mε\033[0m"	// The epsilon label is printed as the "epsilon" letter
+#define EPSILON_PRINT "\033[1;34meps\033[0m"	// The epsilon label is printed as the "epsilon" letter
 #define SHOW( label ) ((label == EPSILON) ? (EPSILON_PRINT) : (label))
 
 namespace quicksc {

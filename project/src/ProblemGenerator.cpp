@@ -55,8 +55,7 @@ namespace quicksc {
 	 */
 	ProblemGenerator::ProblemGenerator(Configurations* configurations) {
 		// Instantiating the random manager
-		RandomnessManager* random = new RandomnessManager();
-		//random->setSeed(1613950262);
+		RandomnessManager* random = new RandomnessManager(configurations);
 		random->printSeed();
 		// Once the random manager ended its job, it can be deleted
 		delete random;
@@ -123,12 +122,20 @@ namespace quicksc {
 	/* Class RandomnessManager */
 
 	/**
-	 * Constructor.
-	 * It sets the seed of the random number generator.
+	 * Constructor based on the configuration file.
+	 * It sets the seed for the random number generator, according to the configuration setting "RandomSeed".
+	 */
+	RandomnessManager::RandomnessManager(Configurations* configurations) {
+		this->setSeed(configurations->valueOf<unsigned int>(RandomSeed));
+	}
+
+	/**
+	 * Empty constructor.
+	 * It sets the seed for the random number generator, according to the current time.
 	 */
 	RandomnessManager::RandomnessManager() {
 		this->m_seed = 0;	// Fictional seed, it's overwritten by the next call to the newSeed() method
-		this->newSeed();
+		this->newRandomSeed();
 	}
 
 	/**
@@ -137,13 +144,11 @@ namespace quicksc {
 	RandomnessManager::~RandomnessManager() {};
 
 	/**
-	 * Generates a new seed for the random number generator.
-	 * The seed depends on the current time.
+	 * Generates a new seed for the random number generator, depending on the current time.
+	 * It calls the "setSeed" method to set the new seed.
 	 */
-	void RandomnessManager::newSeed() {
-		this->m_seed = time(0);
-		srand(this->m_seed);
-		DEBUG_LOG("Setting a new random seed: %lu", this->m_seed);
+	void RandomnessManager::newRandomSeed() {
+		this->setSeed((unsigned long int) time(0));
 	}
 
 	/**
@@ -157,6 +162,7 @@ namespace quicksc {
 	 * Sets the seed of the random number generator.
 	 */
 	void RandomnessManager::setSeed(unsigned long int new_seed) {
+		DEBUG_LOG("Setting random seed to: %lu", new_seed);
 		this->m_seed = new_seed;
 		srand(this->m_seed);
 	}
@@ -165,7 +171,7 @@ namespace quicksc {
 	 * Prints the current seed.
 	 */
 	void RandomnessManager::printSeed() {
-		printf("Seme attuale = " COLOR_BLUE("%lu") "\n", this->m_seed);
+		printf("Current random seed = " COLOR_BLUE("%lu") "\n", this->m_seed);
 	}
 
 } /* namespace quicksc */

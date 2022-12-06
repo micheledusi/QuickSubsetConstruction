@@ -16,7 +16,7 @@
 
 #include "AutomataDrawer.hpp"
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 #include "Debug.hpp"
 

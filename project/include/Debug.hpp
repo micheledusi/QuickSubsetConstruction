@@ -201,11 +201,13 @@ namespace quicksc {
 	 * It expects a NULL variable, so the the printed message is green if the value is NULL, red otherwise.
 	 */
 	#define DEBUG_ASSERT_NULL( variable_id ) 														\
-		if (variable_id == NULL) {																	\
-			DEBUG_LOG_SUCCESS( "Variable \"%s\" == NULL, expected NULL", #variable_id );			\
-		} else {																					\
-			DEBUG_LOG_FAIL( "Variable \"%s\" == NOT NULL, expected NULL", #variable_id );			\
-		}
+		IF_DEBUG_ACTIVE(																			\
+			if (variable_id == NULL) {																\
+				DEBUG_LOG_SUCCESS( "Variable \"%s\" == NULL, expected NULL", #variable_id );		\
+			} else {																				\
+				DEBUG_LOG_FAIL( "Variable \"%s\" == NOT NULL, expected NULL", #variable_id );		\
+			} 																						\
+		)
 
 	/**
 	 * This macro function accepts a variable name as argument.
@@ -213,11 +215,13 @@ namespace quicksc {
 	 * It expects a NOT NULL variable, so the the printed message is green if the value is NOT NULL, red otherwise.
 	 */
 	#define DEBUG_ASSERT_NOT_NULL( variable_id )													\
-		if (variable_id != NULL) {																	\
-			DEBUG_LOG_SUCCESS( "Variable \"%s\" == NOT NULL, expected NOT NULL", #variable_id );	\
-		} else {																					\
-			DEBUG_LOG_FAIL( "Variable \"%s\" == NULL, expected NOT NULL", #variable_id );			\
-		}
+		IF_DEBUG_ACTIVE(																			\
+			if (variable_id != NULL) {																\
+				DEBUG_LOG_SUCCESS( "Variable \"%s\" == NOT NULL, expected NOT NULL", #variable_id );\
+			} else {																				\
+				DEBUG_LOG_FAIL( "Variable \"%s\" == NULL, expected NOT NULL", #variable_id );		\
+			}																						\
+		)
 
 	/**
 	 * This macro function accepts a condition as argument.
@@ -225,11 +229,13 @@ namespace quicksc {
 	 * It expects a true condition, so the the printed message is green if the condition is true, red otherwise.
 	 */
 	#define DEBUG_ASSERT_TRUE( condition ) 															\
-		if (condition) {																			\
-			DEBUG_LOG_SUCCESS( "Condition (%s) == TRUE, expected TRUE", #condition );				\
-		} else {																					\
-			DEBUG_LOG_FAIL( "Condition (%s) == FALSE, expected TRUE", #condition );					\
-		}
+		IF_DEBUG_ACTIVE(																			\
+			if (condition) {																		\
+				DEBUG_LOG_SUCCESS( "Condition (%s) == TRUE, expected TRUE", #condition );			\
+			} else {																				\
+				DEBUG_LOG_FAIL( "Condition (%s) == FALSE, expected TRUE", #condition );				\
+			}																						\
+		)
 
 	/**
 	 * This macro function accepts a condition as argument.
@@ -237,11 +243,13 @@ namespace quicksc {
 	 * It expects a false condition, so the the printed message is green if the condition is false, red otherwise.
 	 */
 	#define DEBUG_ASSERT_FALSE( condition )															\
-		if (!(condition)) {																			\
-			DEBUG_LOG_SUCCESS( "Condition (%s) == FALSE, expected FALSE", #condition );				\
-		} else {																					\
-			DEBUG_LOG_FAIL( "Condition (%s) == TRUE, expected FALSE", #condition );					\
-		}
+		IF_DEBUG_ACTIVE(																			\
+			if (!(condition)) {																		\
+				DEBUG_LOG_SUCCESS( "Condition (%s) == FALSE, expected FALSE", #condition );			\
+			} else {																				\
+				DEBUG_LOG_FAIL( "Condition (%s) == TRUE, expected FALSE", #condition );				\
+			}																						\
+		)
 
 	/**
 	 * This macro function allows to wait the user to press a key before continuing.

@@ -22,12 +22,12 @@ namespace quicksc {
 
 	typedef enum {
 		Testcases,
+		RandomSeed,
 
 		ProblemType,
 
 		AlphabetCardinality,
 		EpsilonPercentage,
-
 		AutomatonStructure,
 		AutomatonSize,
 		AutomatonFinalProbability,

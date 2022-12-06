@@ -21,8 +21,8 @@
 
 #define NER_ABBR        "ner"
 #define NER_NAME        "Naive Epsilon Removal"
-#define CER_ABBR        "cer"
-#define CER_NAME        "Closuring Epsilon Removal"
+#define GER_ABBR        "ger"
+#define GER_NAME        "Global Epsilon Removal"
 
 // Results, folders and files
 #define DIR_RESULTS 						"results/"

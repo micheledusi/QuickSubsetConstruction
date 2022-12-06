@@ -1,12 +1,14 @@
-// Automi casuali
+// Testcases
 
-// Aumento della dimensione
 start session
-    // Automi casuali
+    #test = 1
+    #rseed = 1670317907
+    // "structure 0" means random automata structure
     structure = 0
-    #alpha = 10
+    #alpha = 5
     #size = 5
     %transitions = 0.5
     %epsilon = 0.5
-    ?porig = 0
+    ?porig = 1
+    ?psolu = 1
 end session

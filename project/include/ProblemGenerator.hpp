@@ -98,9 +98,10 @@ namespace quicksc {
 
 	public:
 		RandomnessManager();
+		RandomnessManager(Configurations* configurations);
 		~RandomnessManager();
 
-		void newSeed();
+		void newRandomSeed();
 		unsigned long int getSeed();
 		void setSeed(unsigned long int new_seed);
 		void printSeed();

@@ -43,14 +43,25 @@ int main(int argc, char **argv) {
 			config->load(CONFIG_FILENAME);
 		}
 
-		/*
 		vector<DeterminizationAlgorithm*> algorithms;
 		DEBUG_MARK_PHASE("Algorithms loading") {
-			algorithms.push_back(new SubsetConstruction());
-			algorithms.push_back(new EmbeddedSubsetConstruction(config));
-			algorithms.push_back(new QuickSubsetConstruction(config));
-			algorithms.push_back(new DeterminizationWithEpsilonRemovalAlgorithm(new NaiveEpsilonRemovalAlgorithm(), new SubsetConstruction()));
-			algorithms.push_back(new DeterminizationWithEpsilonRemovalAlgorithm(new NaiveEpsilonRemovalAlgorithm(), new QuickSubsetConstruction(config)));
+			DeterminizationAlgorithm* sc = new SubsetConstruction();
+			//DeterminizationAlgorithm* esc = new EmbeddedSubsetConstruction(config);
+			DeterminizationAlgorithm* qsc = new QuickSubsetConstruction(config);
+			EpsilonRemovalAlgorithm* ner = new NaiveEpsilonRemovalAlgorithm();
+			EpsilonRemovalAlgorithm* ger = new GlobalEpsilonRemovalAlgorithm();
+			DeterminizationAlgorithm* sc_with_ner = new DeterminizationWithEpsilonRemovalAlgorithm(ner, sc);
+			DeterminizationAlgorithm* sc_with_ger = new DeterminizationWithEpsilonRemovalAlgorithm(ger, sc);
+			DeterminizationAlgorithm* qsc_with_ner = new DeterminizationWithEpsilonRemovalAlgorithm(ner, qsc);
+			DeterminizationAlgorithm* qsc_with_ger = new DeterminizationWithEpsilonRemovalAlgorithm(ger, qsc);
+
+			algorithms.push_back(sc);
+			//algorithms.push_back(esc);
+			algorithms.push_back(qsc);
+			algorithms.push_back(sc_with_ner);
+			algorithms.push_back(sc_with_ger);
+			algorithms.push_back(qsc_with_ner);
+			algorithms.push_back(qsc_with_ger);
 		}
 
 		do {
@@ -66,9 +77,9 @@ int main(int argc, char **argv) {
 			solver.getResultCollector()->presentResults();
 			std::cout << std::endl;
 		} while (config->nextTestCase());
-		*/
-
 		
+
+		/*
 		// Previous version of a program to create a specific automaton and test the algorithms on it.
 
 		Automaton* nfa = new Automaton();
@@ -113,7 +124,7 @@ int main(int argc, char **argv) {
 		
 		AutomataDrawer dfa_drawer = AutomataDrawer(dfa);
 		std::cout << dfa_drawer.asString() << std::endl;
-		
+		// */
 	}
 
 	return 0;
