@@ -13,9 +13,11 @@
 #include <fstream>
 
 #include "AutomataDrawer.hpp"
-//#define DEBUG_MODE
-#include "Debug.hpp"
 #include "Properties.hpp"
+#include "QuickSubsetConstruction.hpp"
+
+// #define DEBUG_MODE
+#include "Debug.hpp"
 
 using namespace std;
 
@@ -25,16 +27,19 @@ namespace quicksc {
 
 	// Strings for the statistics visualization
 	vector<string> result_stat_headlines = vector<string> {
-		"SOL_SIZE    [#] ",
-		"SOL_GROWTH  [%] ",
-        "SOL_TR_COUNT[#] ",
+		"SOL_SIZE       [#] ",
+		"SOL_GROWTH     [%] ",
+        "SOL_TR_COUNT   [#] ",
 	};
 
 	// Strings for the statistics visualization
 	vector<string> algorithm_stat_headlines = vector<string> {
-		"CORRECTNESS [%] ",	
-		"EXEC_TIME   [ms]",	
-		"EMP_GAIN    [.] "	
+		"CORRECTNESS    [%] ",	
+		"EXEC_TIME      [ms]",	
+		"EMP_GAIN       [.] ",	
+		"UNIT_COUNT     [#] ",	
+		"UNIT_TIME      [ms]",	
+		"CONVENIENCE    [.] ",	
 	};
 
 	/**
@@ -153,6 +158,71 @@ namespace quicksc {
 			};
 			break;
 
+		case UNIT_COUNT :
+			DEBUG_LOG("Retrieving getter for UNIT_COUNT");
+			getter = [algorithm](Result* result) {
+				DEBUG_LOG("Calling getter for UNIT_COUNT");
+
+				DEBUG_ASSERT_FALSE(result->runtime_stats[algorithm].empty());
+				IF_DEBUG_ACTIVE(
+					for (auto& pair : result->runtime_stats[algorithm]) {
+						DEBUG_LOG("Statistics %s has value = %f", pair.first.c_str(), pair.second);
+					}
+				)
+
+				// Checking if the algorithm has a runtime statistics called "NUMBER SINGULARITIES TOTAL"
+				if (result->runtime_stats[algorithm].count(NUMBER_SINGULARITIES_TOTAL)) {
+					// If so, we return that value
+					DEBUG_LOG("The algorithm has the runtime statistics called \"NUMBER SINGULARITIES TOTAL\"");
+					return (double) (result->runtime_stats[algorithm][NUMBER_SINGULARITIES_TOTAL]);
+				}
+				else {
+					DEBUG_LOG("The algorithm has no singularities, so we take the transitions count");
+					DEBUG_ASSERT_NOT_NULL(result->solutions[algorithm]);
+					// Otherwise, we return the number of transitions of the solution
+					DEBUG_LOG("Number of transitions = %d", result->solutions[algorithm]->getTransitionsCount());
+					return (double) (result->solutions[algorithm]->getTransitionsCount());
+				}
+			};
+			break;
+
+		case UNIT_PROCESSING_TIME :
+			DEBUG_LOG("Retrieving getter for UNIT_PROCESSING_TIME");
+			getter = [this, algorithm](Result* result) {
+				DEBUG_LOG("Calling getter for UNIT_PROCESSING_TIME");
+				// Uses the getter of the "UNIT_COUNT" statistic, supposing it's already computed
+				auto unit_count_getter = this->getStatGetter(UNIT_COUNT, algorithm);
+				// Returns the time spent by the algorithm to process a unit
+				return (double) (result->times[algorithm] / unit_count_getter(result));
+			};
+			break;
+
+		case CONVENIENCE :
+			DEBUG_LOG("Retrieving getter for CONVENIENCE");
+			getter = [this, algorithm](Result* result) {
+				DEBUG_LOG("Calling getter for CONVENIENCE");
+				DeterminizationAlgorithm* benchmark = result->benchmark_algorithm;
+
+				// Taking the getters for the "UNIT_PROCESSING_TIME" statistic
+				auto benchmark_upt_getter = this->getStatGetter(UNIT_PROCESSING_TIME, benchmark);
+				auto algorithm_upt_getter = this->getStatGetter(UNIT_PROCESSING_TIME, algorithm);
+
+				// Getting the statistics for the benchmark algorithm and the current algorithm
+				double benchmark_utp = benchmark_upt_getter(result);
+				double algorithm_utp = algorithm_upt_getter(result);
+
+				// Computing the convenience
+				// If the UTP of the algorithm is 0, the convenience is maximum
+				if (algorithm_utp <= 1E-8) {
+					return 1E20;
+				}
+				// Otherwise, the smaller the UTP of the algorithm wrt to the benchmark, the higher the convenience
+				else {
+					return (double) (benchmark_utp / algorithm_utp);
+				}
+			};
+			break;
+
 		default :
 			DEBUG_LOG_ERROR("Valore %d non riconosciuto all'interno dell'enumerazione AlgorithmStat", stat);
 			getter = [](Result* result) {
@@ -227,6 +297,7 @@ namespace quicksc {
 				max = current_value;
 			}
 		}
+		DEBUG_LOG("Computed stat: min = %f, avg = %f, max = %f", min, sum / this->m_results.size(), max);
 		return std::make_tuple(min, (sum / this->m_results.size()), max);
 	}
 
@@ -238,7 +309,6 @@ namespace quicksc {
 	 */
 	std::tuple<double, double, double> ResultCollector::getStat(ResultStat stat) {
 		auto getter = this->getStatGetter(stat);
-		DEBUG_LOG("Ho appena estratto l'estrattore");
 		return this->computeStat(getter);
 	}
 
@@ -476,15 +546,19 @@ namespace quicksc {
 
 			// Iteration over all the statistics depending on the algorithm and the automaton
 			for (int int_stat = 0; int_stat < ALGORITHMSTAT_END; int_stat++) {
+				DEBUG_LOG("Statistics: %d", int_stat);
 				AlgorithmStat stat = static_cast<AlgorithmStat>(int_stat);
 				tuple<double, double, double> stat_values = this->getStat(stat, algo);
 				if (do_print) {
+					DEBUG_LOG("Printing statistics");
 					printf(FORMAT, algorithm_stat_headlines[stat].c_str(),
 						std::get<0>(stat_values),
 						std::get<1>(stat_values),
 						std::get<2>(stat_values));
+					DEBUG_LOG("End of printing statistics");
 				}
 				if (do_log) {
+					DEBUG_LOG("Logging statistics");
 					file_out << std::to_string(std::get<0>(stat_values)) << ", ";
 					file_out << std::to_string(std::get<1>(stat_values)) << ", ";
 					file_out << std::to_string(std::get<2>(stat_values)) << ", ";

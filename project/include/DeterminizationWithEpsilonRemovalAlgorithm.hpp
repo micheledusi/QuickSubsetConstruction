@@ -20,6 +20,10 @@
 #include "DeterminizationAlgorithm.hpp"
 #include "EpsilonRemovalAlgorithm.hpp"
 
+// Runtime Statistics
+#define EPSILON_REMOVAL_TIME    	    "ER_TIME        [ms]"
+#define DETERMINIZATION_TIME    	    "DET_TIME       [ms]"
+
 namespace quicksc {
 
     class DeterminizationWithEpsilonRemovalAlgorithm : public DeterminizationAlgorithm {
@@ -34,6 +38,7 @@ namespace quicksc {
 
         void resetRuntimeStatsValues();
         vector<RuntimeStat> getRuntimeStatsList();
+		map<RuntimeStat, double> getRuntimeStatsValues();
 
         Automaton* run(Automaton* nfa);
 

@@ -14,13 +14,26 @@
 
 #include "DeterminizationWithEpsilonRemovalAlgorithm.hpp"
 
+#include <chrono>
+
 #include "AutomataDrawer.hpp"
 
 //#define DEBUG_MODE
-
 #include "Debug.hpp"
 
 namespace quicksc {
+
+	/**
+	 * Macro function that measures the time spent to execute a block of code.
+	 * It stores the time in a variable (declared internally to the macro) whose name can be inserted as a parameter.
+	 */
+	#define MEASURE_MILLISECONDS( ms_result ) 											\
+		unsigned long int ms_result = 0; 												\
+		auto CONCAT( ms_result, _start ) = chrono::high_resolution_clock::now(); 		\
+		for (	int CONCAT( ms_result, _for_counter ) = 0; 								\
+				CONCAT( ms_result, _for_counter ) < 1;									\
+				CONCAT( ms_result, _for_counter++ ),									\
+				ms_result = std::chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() - CONCAT( ms_result, _start )).count() )
 
     /**
      * Base constructor.
@@ -46,11 +59,36 @@ namespace quicksc {
     }
 
     void DeterminizationWithEpsilonRemovalAlgorithm::resetRuntimeStatsValues() {
+		// Calling parent method
+		DeterminizationAlgorithm::resetRuntimeStatsValues();
+		// Initializing the values
+		map<RuntimeStat, double> stats = this->getRuntimeStatsValuesRef();
+		for (RuntimeStat stat : this->getRuntimeStatsList()) {
+			stats[stat] = (double) 0;
+		}
+
+        // Calling method on the inner determinization algorithm
         this->m_determinization_algorithm->resetRuntimeStatsValues();
     }
 
     vector<RuntimeStat> DeterminizationWithEpsilonRemovalAlgorithm::getRuntimeStatsList() {
-        return this->m_determinization_algorithm->getRuntimeStatsList();
+        vector<RuntimeStat> runtime_stats = DeterminizationAlgorithm::getRuntimeStatsList();
+        // Adding elements from the inner determinization algorithm
+        for (RuntimeStat stat : this->m_determinization_algorithm->getRuntimeStatsList()) {
+            runtime_stats.push_back("in-" + stat); // Adding "in-" to distinguish the inner stats from the outer ones
+        }
+        runtime_stats.push_back(EPSILON_REMOVAL_TIME);
+        runtime_stats.push_back(DETERMINIZATION_TIME);
+        return runtime_stats;
+    }
+
+    /** @override **/
+    map<RuntimeStat, double> DeterminizationWithEpsilonRemovalAlgorithm::getRuntimeStatsValues() {
+        // Adding elements from the inner determinization algorithm to the map
+        for (RuntimeStat inner_stat : this->m_determinization_algorithm->getRuntimeStatsList()) {
+            this->getRuntimeStatsValuesRef()["in-" + inner_stat] = this->m_determinization_algorithm->getRuntimeStatsValues()[inner_stat];
+        }
+        return this->getRuntimeStatsValuesRef();
     }
 
     /**
@@ -67,7 +105,10 @@ namespace quicksc {
         DEBUG_MARK_PHASE("Epsilon removal with <%s>", this->m_epsilon_removal_algorithm->name().c_str()) {
             // Note: the epsilon removal algorithm is applied to the clone of the NFA
             // This procedure works directly on the NFA, so we need to clone it
-            nfa_without_epsilons = this->m_epsilon_removal_algorithm->run(nfa_clone);
+            MEASURE_MILLISECONDS( er_time ) {
+                nfa_without_epsilons = this->m_epsilon_removal_algorithm->run(nfa_clone);
+            }
+            this->getRuntimeStatsValuesRef()[EPSILON_REMOVAL_TIME] = er_time;
         }
 
         DEBUG_LOG("NFA without epsilons:");
@@ -75,7 +116,10 @@ namespace quicksc {
         DEBUG_LOG("%s", drawer->asString().c_str());
 
         DEBUG_MARK_PHASE("Determinization with <%s>", this->m_determinization_algorithm->name().c_str()) {
-            dfa = this->m_determinization_algorithm->run(nfa_without_epsilons);
+            MEASURE_MILLISECONDS( det_time ) {
+                dfa = this->m_determinization_algorithm->run(nfa_without_epsilons);
+            }
+            this->getRuntimeStatsValuesRef()[DETERMINIZATION_TIME] = det_time;
         }
 
         delete nfa_without_epsilons;  // The NFA without epsilon transitions is removed
