@@ -7,5 +7,3 @@ It's proven to compute the Deterministic Finite Automaton (**DFA**) equivalent t
 For this, there are cases where QSC performs significantly better than SC.
 
 This repository contains a simple implementation of QSC and SC within a testing framework that can measure the performance of the two algorithms. The two approaches are compared in the determinization of random automata, generated according to some parameters. The framework offers a resume of the performances, allowing to choose the best algorithm for the testcases.
-
-For more information, please see the paper "Quick Subset Construction" *[page TBA]*.
