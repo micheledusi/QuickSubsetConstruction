@@ -7,17 +7,18 @@
 // "structure 4" means doped automata structure, with one epsilon transitions
 
 start session
-    #test = 100
+    #test = 20
     #rseed = 42
 
     structure = 4
 
     #alpha = 5
-    #size = 100
+    #size = 100, 200, 300, 400, 500
     %transitions = 0.5
     %epsilon = 0.5
 
     ?pstats = 1
+    ?lstats = 1
     ?porig = 0
     ?psolu = 0
 end session

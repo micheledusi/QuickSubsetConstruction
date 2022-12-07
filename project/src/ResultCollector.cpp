@@ -543,6 +543,12 @@ namespace quicksc {
 
 		bool do_print = this->m_config_reference->valueOf<bool>(PrintStatistics);
 		bool do_log   = this->m_config_reference->valueOf<bool>(LogStatistics);
+		bool do_log_min, do_log_avg, do_log_max;
+		if (do_log) {
+			do_log_min = this->m_config_reference->valueOf<bool>(LogStatisticsMin);
+			do_log_avg = this->m_config_reference->valueOf<bool>(LogStatisticsAvg);
+			do_log_max = this->m_config_reference->valueOf<bool>(LogStatisticsMax);
+		}
 
 		// If no other action is required, return
 		if (!do_print && !do_log) {
@@ -587,9 +593,9 @@ namespace quicksc {
 					std::get<2>(stat_values));
 			}
 			if (do_log) {
-				file_out << std::to_string(std::get<0>(stat_values)) << ", ";
-				file_out << std::to_string(std::get<1>(stat_values)) << ", ";
-				file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+				if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
+				if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
+				if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
 			}
 		}
 
@@ -613,9 +619,9 @@ namespace quicksc {
 						std::get<2>(stat_values));
 				}
 				if (do_log) {
-					file_out << std::to_string(std::get<0>(stat_values)) << ", ";
-					file_out << std::to_string(std::get<1>(stat_values)) << ", ";
-					file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+					if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
+					if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
+					if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
 				}
 			}
 
@@ -630,9 +636,9 @@ namespace quicksc {
 						std::get<2>(stat_values));
 				}
 				if (do_log) {
-					file_out << std::to_string(std::get<0>(stat_values)) << ", ";
-					file_out << std::to_string(std::get<1>(stat_values)) << ", ";
-					file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+					if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
+					if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
+					if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
 				}
 			}
 		}

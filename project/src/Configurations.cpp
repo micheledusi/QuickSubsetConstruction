@@ -268,6 +268,9 @@ namespace quicksc {
 
 		load(PrintStatistics, true);
 		load(LogStatistics, true);
+		load(LogStatisticsMin, false);
+		load(LogStatisticsAvg, true);
+		load(LogStatisticsMax, false);
 		load(PrintOriginalAutomaton, false);
 		load(PrintSolutionAutomaton, false);
 		load(DrawOriginalAutomaton, false);
@@ -395,6 +398,9 @@ namespace quicksc {
 			{ ActiveDistanceCheckInTranslation , "Active \"distance check in translation\"", "?distcheck",  false },
 			{ PrintStatistics , 			"Print statistics", 						"?pstats", false },
 			{ LogStatistics , 				"Log statistics in file", 					"?lstats", false },
+			{ LogStatisticsMin , 			"Log in file the minimum value of a stat", 	"?lstatsmin", false},
+			{ LogStatisticsAvg , 			"Log in file the average value of a stat", 	"?lstatsavg", false},
+			{ LogStatisticsMax , 			"Log in file the maximum value of a stat", 	"?lstatsmax", false},
 			{ PrintOriginalAutomaton , 		"Print original automaton", 				"?porig", false },
 			{ PrintSolutionAutomaton , 		"Print solution solution", 					"?psolu", false },
 			{ DrawOriginalAutomaton , 		"Draw original automaton", 					"?dorig", false },
