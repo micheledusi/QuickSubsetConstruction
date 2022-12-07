@@ -23,6 +23,7 @@ using namespace std;
 
 #define COMPUTE_CORRECTNESS false
 #define DEFAULT_MAX_CONVENIENCE 9999.9999
+#define DEFAULT_MAX_SCALE_FACTOR 9999.9999
 
 namespace quicksc {
 
@@ -39,10 +40,14 @@ namespace quicksc {
 		"CORRECTNESS    [%] ",
 		*/
 		"EXEC_TIME      [ms]",	
-		"EMP_GAIN       [.] ",	
-		"UNIT_COUNT     [#] ",	
-		"UNIT_TIME      [ms]",	
-		"CONVENIENCE    [.] ",	
+		"GAIN           [.] ",	
+		"UNIT_COUNT     [#] ",
+		"VELOCITY       [#/ms]",
+		"SCALE_FACTOR   [.]",
+		/* Skip
+		"UNIT_TIME      [ms]",
+		"CONVENIENCE    [.] ",
+		*/
 	};
 
 	/**
@@ -164,9 +169,7 @@ namespace quicksc {
 			break;
 
 		case UNIT_COUNT :
-			DEBUG_LOG("Retrieving getter for UNIT_COUNT");
 			getter = [algorithm](Result* result) {
-				DEBUG_LOG("Calling getter for UNIT_COUNT");
 
 				DEBUG_ASSERT_FALSE(result->runtime_stats[algorithm].empty());
 				IF_DEBUG_ACTIVE(
@@ -191,10 +194,42 @@ namespace quicksc {
 			};
 			break;
 
-		case UNIT_PROCESSING_TIME :
-			DEBUG_LOG("Retrieving getter for UNIT_PROCESSING_TIME");
+		case VELOCITY :
 			getter = [this, algorithm](Result* result) {
-				DEBUG_LOG("Calling getter for UNIT_PROCESSING_TIME");
+				// Uses the getter of the "UNIT_COUNT" statistic, supposing it's already computed
+				auto unit_count_getter = this->getStatGetter(UNIT_COUNT, algorithm);
+				// Returns the number of units processed per millisecond
+				return (double) (unit_count_getter(result) / result->times[algorithm]);
+			};
+			break;
+
+		case SCALE_FACTOR :
+			getter = [this, algorithm](Result* result) {
+				DeterminizationAlgorithm* benchmark = result->benchmark_algorithm;
+
+				// Taking the getters for the "VELOCITY" statistic
+				auto benchmark_vel_getter = this->getStatGetter(VELOCITY, benchmark);
+				auto algorithm_vel_getter = this->getStatGetter(VELOCITY, algorithm);
+
+				// Getting the statistics for the benchmark algorithm and the current algorithm
+				double benchmark_vel = benchmark_vel_getter(result);
+				double algorithm_vel = algorithm_vel_getter(result);
+
+				// Computing the convenience
+				// If the UTP of the algorithm is 0, the convenience is maximum
+				if (algorithm_vel <= 1E-4) {
+					return DEFAULT_MAX_SCALE_FACTOR;
+				}
+				// Otherwise, the smaller the UTP of the algorithm wrt to the benchmark, the higher the convenience
+				else {
+					return (double) (benchmark_vel / algorithm_vel);
+				}
+			};
+			break;
+
+		/*
+		case UNIT_PROCESSING_TIME :
+			getter = [this, algorithm](Result* result) {
 				// Uses the getter of the "UNIT_COUNT" statistic, supposing it's already computed
 				auto unit_count_getter = this->getStatGetter(UNIT_COUNT, algorithm);
 				// Returns the time spent by the algorithm to process a unit
@@ -203,9 +238,7 @@ namespace quicksc {
 			break;
 
 		case CONVENIENCE :
-			DEBUG_LOG("Retrieving getter for CONVENIENCE");
 			getter = [this, algorithm](Result* result) {
-				DEBUG_LOG("Calling getter for CONVENIENCE");
 				DeterminizationAlgorithm* benchmark = result->benchmark_algorithm;
 
 				// Taking the getters for the "UNIT_PROCESSING_TIME" statistic
@@ -227,6 +260,7 @@ namespace quicksc {
 				}
 			};
 			break;
+			*/
 
 		default :
 			DEBUG_LOG_ERROR("Valore %d non riconosciuto all'interno dell'enumerazione AlgorithmStat", stat);
@@ -481,7 +515,24 @@ namespace quicksc {
 		file_out.close();
 	}
 
-	#define FORMAT "\t" COLOR_PINK("%-20s") " | %11.4f | %11.4f | %11.4f |\n"
+	
+	/**
+	 * Utility methods.
+	 * This method gets the entry of a statistics as input.
+	 * The entry is composed by a name and a measure unit, inserted in brackets and separated by a space.
+	 * The method returns a tuple containing the name and the measure unit, separately.
+	*/
+	pair<string, string> getStatHeader(string statistic_entry) {
+		string name = statistic_entry.substr(0, statistic_entry.find(" "));
+		string unit = statistic_entry.substr(statistic_entry.find("["), statistic_entry.find("]"));
+		return make_pair(name, unit);
+	}
+
+	/**
+	 * PMacro defining the format of the output.
+	 */
+	#define FORMAT "\t" COLOR_PINK("%-20s %6s") " | %11.4f | %11.4f | %11.4f |\n"
+
 	/**
 	 * Presents the results of the testcases.
 	 */
@@ -501,9 +552,9 @@ namespace quicksc {
 		if (do_print) {
 			printf("RESULTS:\n");
 			printf("Based on " COLOR_BLUE("%u") " testcases of automata with these characteristics:\n", this->getTestCaseNumber());
-			//printf("AlphabetCardinality    = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AlphabetCardinality));
+			printf("AlphabetCardinality    = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AlphabetCardinality));
 			printf("Size                   = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSize));
-			//printf("TransitionPercentage   = " COLOR_BLUE("%f") "\n", this->m_config_reference->valueOf<double>(AutomatonTransitionsPercentage));
+			printf("TransitionPercentage   = " COLOR_BLUE("%f") "\n", this->m_config_reference->valueOf<double>(AutomatonTransitionsPercentage));
 			printf("EpsilonPercentage      = " COLOR_BLUE("%.3f") "\n", this->m_config_reference->valueOf<double>(EpsilonPercentage));
 			printf("MaximumDistance        = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonMaxDistance));
 			printf("SafeZoneDistance       = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSafeZoneDistance));
@@ -529,7 +580,8 @@ namespace quicksc {
 			ResultStat stat = static_cast<ResultStat>(int_stat);
 			tuple<double, double, double> stat_values = this->getStat(stat);
 			if (do_print) {
-				printf(FORMAT, result_stat_headlines[stat].c_str(),
+				pair<string, string> stat_str = getStatHeader(result_stat_headlines[stat]);
+				printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
 					std::get<0>(stat_values),
 					std::get<1>(stat_values),
 					std::get<2>(stat_values));
@@ -551,19 +603,16 @@ namespace quicksc {
 
 			// Iteration over all the statistics depending on the algorithm and the automaton
 			for (int int_stat = 0; int_stat < ALGORITHMSTAT_END; int_stat++) {
-				DEBUG_LOG("Statistics: %d", int_stat);
 				AlgorithmStat stat = static_cast<AlgorithmStat>(int_stat);
 				tuple<double, double, double> stat_values = this->getStat(stat, algo);
 				if (do_print) {
-					DEBUG_LOG("Printing statistics");
-					printf(FORMAT, algorithm_stat_headlines[stat].c_str(),
+					pair<string, string> stat_str = getStatHeader(algorithm_stat_headlines[stat]);
+					printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
 						std::get<0>(stat_values),
 						std::get<1>(stat_values),
 						std::get<2>(stat_values));
-					DEBUG_LOG("End of printing statistics");
 				}
 				if (do_log) {
-					DEBUG_LOG("Logging statistics");
 					file_out << std::to_string(std::get<0>(stat_values)) << ", ";
 					file_out << std::to_string(std::get<1>(stat_values)) << ", ";
 					file_out << std::to_string(std::get<2>(stat_values)) << ", ";
@@ -574,7 +623,8 @@ namespace quicksc {
 			for (RuntimeStat stat : algo->getRuntimeStatsList()) {
 				tuple<double, double, double> stat_values = this->getStat(stat, algo);
 				if (do_print) {
-					printf(FORMAT, stat.c_str(),
+					pair<string, string> stat_str = getStatHeader(stat);
+					printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
 						std::get<0>(stat_values),
 						std::get<1>(stat_values),
 						std::get<2>(stat_values));
