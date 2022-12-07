@@ -1,15 +1,22 @@
 // Testcases
 
+// "structure 0" means random automata structure
+// "structure 1" means stratified automata structure
+// "structure 2" means stratified with "determinism" automata structure
+// "structure 3" means acyclic automata structure
+// "structure 4" means doped automata structure, with one epsilon transitions
+
 start session
-    #test = 1
+    #test = 100
     #rseed = 42
-    // "structure 0" means random automata structure
-    // "structure 4" means doped automata structure with one epsilon transitions
+
     structure = 4
+
     #alpha = 5
-    #size = 1000
+    #size = 100
     %transitions = 0.5
     %epsilon = 0.5
+
     ?pstats = 1
     ?porig = 0
     ?psolu = 0
