@@ -22,6 +22,7 @@
 using namespace std;
 
 #define COMPUTE_CORRECTNESS false
+#define DEFAULT_MAX_CONVENIENCE 9999.9999
 
 namespace quicksc {
 
@@ -34,7 +35,9 @@ namespace quicksc {
 
 	// Strings for the statistics visualization
 	vector<string> algorithm_stat_headlines = vector<string> {
-		"CORRECTNESS    [%] ",	
+		/* Skip
+		"CORRECTNESS    [%] ",
+		*/
 		"EXEC_TIME      [ms]",	
 		"EMP_GAIN       [.] ",	
 		"UNIT_COUNT     [#] ",	
@@ -116,6 +119,7 @@ namespace quicksc {
 		std::function<double(Result*)> getter;
 		switch(stat) {
 
+		/*
 		case CORRECTNESS :
 			getter = [algorithm](Result* result) {
 				if (COMPUTE_CORRECTNESS) {
@@ -130,6 +134,7 @@ namespace quicksc {
 				}
 			};
 			break;
+		*/
 
 		case EXECUTION_TIME :
 			getter = [algorithm](Result* result) {
@@ -214,7 +219,7 @@ namespace quicksc {
 				// Computing the convenience
 				// If the UTP of the algorithm is 0, the convenience is maximum
 				if (algorithm_utp <= 1E-8) {
-					return 1E20;
+					return DEFAULT_MAX_CONVENIENCE;
 				}
 				// Otherwise, the smaller the UTP of the algorithm wrt to the benchmark, the higher the convenience
 				else {

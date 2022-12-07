@@ -61,12 +61,10 @@ int main(int argc, char **argv) {
 			algorithms.push_back(sc);
 //			algorithms.push_back(esc);
 			algorithms.push_back(qsc);
-			/*
 			algorithms.push_back(sc_with_ner);
 			algorithms.push_back(sc_with_ger);
 			algorithms.push_back(qsc_with_ner);
 			algorithms.push_back(qsc_with_ger);
-			*/
 		}
 
 		do {

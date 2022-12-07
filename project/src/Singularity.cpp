@@ -190,6 +190,17 @@ namespace quicksc {
 	}
 
 	/**
+	 * Returns the average level of the singularities in the list.
+	 */
+	double SingularityList::getAverageLevel() {
+		double sum = 0;
+		for (auto singularity_iterator = this->m_set.begin(); singularity_iterator != this->m_set.end(); ++singularity_iterator) {
+			sum += (*singularity_iterator)->getState()->getDistance();
+		}
+		return sum / this->size();
+	}
+
+	/**
 	 * Function that reorders the elements of the list of singularities.
 	 * It is advisable to call this function rarely, because the sorting is not particularly efficient,
 	 * given the use of a set (which should require automatic sorting).

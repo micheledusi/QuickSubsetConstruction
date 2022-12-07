@@ -41,7 +41,9 @@ namespace quicksc {
      * \note Every statistic has to be expressed as a double value.
      */
     enum AlgorithmStat {
+        /* Skip
         CORRECTNESS,	// Correctness percentage of the solution automaton
+        */
         EXECUTION_TIME,	// Time spent by the algorithm to compute the solution automaton
         EMPIRICAL_GAIN,	// Experimental gain of the algorithm, i.e. the ratio between the execution time and the minimum time
         UNIT_COUNT,     // Number of units processed in the execution, i.e. a transition for SC and a singularity for QSC

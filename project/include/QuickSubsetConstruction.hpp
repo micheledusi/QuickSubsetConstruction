@@ -20,12 +20,17 @@
 #include "Configurations.hpp"
 
 // Runtime Statistics
-#define NUMBER_SINGULARITIES_CHECKUP	"START_SING     [#]"
-#define NUMBER_SINGULARITIES_SCENARIO_0	"S0_SING        [#]"
-#define NUMBER_SINGULARITIES_SCENARIO_1	"S1_SING        [#]"
-#define NUMBER_SINGULARITIES_SCENARIO_2	"S2_SING        [#]"
-#define NUMBER_SINGULARITIES_TOTAL		"TOT_SING       [#]"
-#define IMPACT							"IMPACT         [%]"
+#define IMPACT							"IMPACT         [%] "
+#define NUMBER_SINGULARITIES_CHECKUP	"START_SING     [#] "
+#define NUMBER_SINGULARITIES_SCENARIO_0	"S0_SING        [#] "
+#define NUMBER_SINGULARITIES_SCENARIO_1	"S1_SING        [#] "
+#define NUMBER_SINGULARITIES_SCENARIO_2	"S2_SING        [#] "
+#define NUMBER_SINGULARITIES_TOTAL		"TOT_SING       [#] "
+#define LEVEL_SINGULARITIES_CHECKUP		"STA_SING_LEVEL [#] "
+#define LEVEL_SINGULARITIES_TOTAL		"TOT_SING_LEVEL [#] "
+#define CLONING_TIME					"CLONING_TIME   [ms]"
+#define RESTRUCTURING_TIME				"RESTRUCT_TIME  [ms]"
+#define DISTANCE_RELOCATION_TIME		"RELOC_TIME     [ms]"
 
 using namespace std;
 

@@ -9,6 +9,8 @@
  * It can be used every time you want to measure the time spent to execute a block of code.
  */
 
+#include <chrono>
+
 namespace quicksc {
     
     /**

@@ -68,6 +68,7 @@ namespace quicksc {
 		Singularity* pop();
 		string getFirstLabel();
 		set<string> removeSingularitiesOfState(ConstructedState* state);
+		double getAverageLevel();
 		void sort();
 		void printSingularities();
 
