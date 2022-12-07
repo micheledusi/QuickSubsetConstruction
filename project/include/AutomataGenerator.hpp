@@ -31,7 +31,8 @@ namespace quicksc {
 		AUTOMATON_RANDOM,
 		AUTOMATON_STRATIFIED,
 		AUTOMATON_STRATIFIED_WITH_SAFE_ZONE,
-		AUTOMATON_ACYCLIC
+		AUTOMATON_ACYCLIC,
+		AUTOMATON_WEAK
 	} AutomatonType;
 
 	class AutomataGenerator {
@@ -50,10 +51,9 @@ namespace quicksc {
 		unsigned int m_namesCounter = 0;
 
 	protected:
-		static const unsigned long int default_size;
 		static const char* default_name_prefix;
-		static const double default_transition_percentage;
-		static const double default_final_probability;
+		
+		Configurations* m_configurations;
 
 		void resetNames();
 		string generateUniqueName();
@@ -81,6 +81,7 @@ namespace quicksc {
 		virtual Automaton* generateStratifiedAutomaton();
 		virtual Automaton* generateStratifiedWithSafeZoneAutomaton();
 		virtual Automaton* generateAcyclicAutomaton();
+		virtual Automaton* generateDopedAutomaton();
 
 	};
 

@@ -1,14 +1,15 @@
 // Testcases
 
 start session
-    #test = 5
+    #test = 1
     #rseed = 42
     // "structure 0" means random automata structure
-    structure = 0
+    // "structure 4" means doped automata structure with one epsilon transitions
+    structure = 4
     #alpha = 5
-    #size = 100
+    #size = 1000
     %transitions = 0.5
-    %epsilon = 0.8
+    %epsilon = 0.5
     ?pstats = 1
     ?porig = 0
     ?psolu = 0

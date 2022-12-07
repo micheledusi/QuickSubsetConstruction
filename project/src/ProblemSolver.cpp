@@ -16,6 +16,7 @@
 #include <chrono>
 #include <list>
 
+#include "Timer.hpp"
 #include "Debug.hpp"
 #include "Properties.hpp"
 
@@ -28,18 +29,6 @@ namespace quicksc {
 	 */
 	#define CONCAT( x, y ) _CONCAT( x, y )
 	#define _CONCAT( x, y ) x ## y
-
-	/**
-	 * Macro function that measures the time spent to execute a block of code.
-	 * It stores the time in a variable (declared internally to the macro) whose name can be inserted as a parameter.
-	 */
-	#define MEASURE_MILLISECONDS( ms_result ) 											\
-		unsigned long int ms_result = 0; 												\
-		auto CONCAT( ms_result, _start ) = chrono::high_resolution_clock::now(); 		\
-		for (	int CONCAT( ms_result, _for_counter ) = 0; 								\
-				CONCAT( ms_result, _for_counter ) < 1;									\
-				CONCAT( ms_result, _for_counter++ ),									\
-				ms_result = std::chrono::duration_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now() - CONCAT( ms_result, _start )).count() )
 
 	/**
 	 * Constructor.

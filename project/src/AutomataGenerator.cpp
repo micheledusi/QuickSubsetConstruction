@@ -19,13 +19,7 @@
 
 namespace quicksc {
 
-	const unsigned long int AutomataGenerator::default_size = 2UL;
-
 	const char* AutomataGenerator::default_name_prefix = "s";
-
-	const double AutomataGenerator::default_transition_percentage = 0.5;
-
-	const double AutomataGenerator::default_final_probability = 0.1;
 
 	/**
 	 * Constructor.
@@ -34,7 +28,7 @@ namespace quicksc {
 	 * The programmer can change the alphabet with the setter methods.
 	 */
 	AutomataGenerator::AutomataGenerator(Alphabet alphabet, Configurations* configurations) {
-		DEBUG_MARK_PHASE("Costruzione di un generatore di automi") {
+		this->m_configurations = configurations;
 		this->m_alphabet = alphabet;
 		this->m_automaton_structure = (AutomatonType) configurations->valueOf<int>(AutomatonStructure);
 		this->m_size = configurations->valueOf<int>(AutomatonSize);
@@ -44,7 +38,6 @@ namespace quicksc {
 		this->m_final_probability = configurations->valueOf<double>(AutomatonFinalProbability);
 		this->m_max_distance = configurations->valueOf<int>(AutomatonMaxDistance);
 		this->m_safe_zone_distance = configurations->valueOf<int>(AutomatonSafeZoneDistance);
-		}
 	}
 
 	/**
@@ -212,30 +205,37 @@ namespace quicksc {
 		case AUTOMATON_ACYCLIC :
 			return this->generateAcyclicAutomaton();
 
+		case AUTOMATON_WEAK :
+			return this->generateDopedAutomaton();
+
 		default :
-			DEBUG_LOG_ERROR("Valore %d non riconosciuto all'interno dell'enumerazione AutomatonType", this->getAutomatonStructure());
+			DEBUG_LOG_ERROR("Unknown value %d in enumeration <AutomatonType>", this->getAutomatonStructure());
 			return NULL;
 		}
 	}
 
+	#define AUTOMATON_GENERATION_EXCEPTION( automaton_type ) \
+		DEBUG_LOG_ERROR("Cannot generate an automaton of type <" #automaton_type "> for the current problem typology"); \
+		throw "Cannot generate an automaton of type \"" #automaton_type "\" for the current problem typology";
+
 	Automaton* AutomataGenerator::generateRandomAutomaton() {
-		DEBUG_LOG_ERROR("Impossibile generare un automa di tipo \"Random\" per l'attuale tipologia di problema");
-		throw "Impossibile generare un automa di tipo \"Random\" per l'attuale tipologia di problema";
+		AUTOMATON_GENERATION_EXCEPTION(Random);
 	}
 
 	Automaton* AutomataGenerator::generateStratifiedAutomaton() {
-		DEBUG_LOG_ERROR("Impossibile generare un automa di tipo \"Stratified\" per l'attuale tipologia di problema");
-		throw "Impossibile generare un automa di tipo \"Stratified\" per l'attuale tipologia di problema";
+		AUTOMATON_GENERATION_EXCEPTION(Stratified);
 	}
 
 	Automaton* AutomataGenerator::generateStratifiedWithSafeZoneAutomaton() {
-		DEBUG_LOG_ERROR("Impossibile generare un automa di tipo \"StratifiedWithSafeZone\" per l'attuale tipologia di problema");
-		throw "Impossibile generare un automa di tipo \"StratifiedWithSafeZone\" per l'attuale tipologia di problema";
+		AUTOMATON_GENERATION_EXCEPTION(StratifiedWithSafeZone);
 	}
 
 	Automaton* AutomataGenerator::generateAcyclicAutomaton() {
-		DEBUG_LOG_ERROR("Impossibile generare un automa di tipo \"Acyclic\" per l'attuale tipologia di problema");
-		throw "Impossibile generare un automa di tipo \"Acyclic\" per l'attuale tipologia di problema";
+		AUTOMATON_GENERATION_EXCEPTION(Acyclic);
+	}
+
+	Automaton* AutomataGenerator::generateDopedAutomaton() {
+		AUTOMATON_GENERATION_EXCEPTION(Doped);
 	}
 
 

@@ -16,10 +16,11 @@
 #include "AutomataGeneratorNFA.hpp"
 
 #include <cmath>
+#include "AutomataGeneratorDFA.hpp"
+#include "Configurations.hpp"
 
 //#define DEBUG_MODE
 #include "Debug.hpp"
-#include "Configurations.hpp"
 
 #define RANDOM_PERCENTAGE ((double) rand() / (RAND_MAX))
 #define INTRA_STRATUM_TRANSITIONS_PERCENTAGE 0.5
@@ -452,6 +453,30 @@ namespace quicksc {
 
 		nfa->setInitialState(states[0]);
 		states[0]->initDistancesRecursively(0);
+
+		return nfa;
+	}
+
+	/**
+	 * Generates a NFA starting from a DFA and "doping" it, by adding non-determinism.
+	 */
+	Automaton* NFAGenerator::generateDopedAutomaton() {
+		// Create a DFA
+		AutomataGenerator* dfa_generator = new DFAGenerator(this->getAlphabet(), this->m_configurations);
+		Automaton* nfa = dfa_generator->generateRandomAutomaton();
+
+		// Get two random different states
+		vector<State*> states = nfa->getStatesVector();
+		State* s1 = this->getRandomState(states);
+		State* s2;
+		do {
+			s2 = this->getRandomState(states);
+		} while (*s1 == *s2);
+		DEBUG_ASSERT_TRUE( *s1 != *s2 );
+
+		// Connect them with an epsilon transition
+		s1->connectChild(EPSILON, s2);
+		DEBUG_ASSERT_TRUE( s1->hasExitingTransition(EPSILON, s2) );
 
 		return nfa;
 	}
