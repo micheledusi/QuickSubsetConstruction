@@ -21,6 +21,8 @@
 
 // Runtime Statistics
 #define IMPACT							"IMPACT         [%] "
+#define EXPECTED_IMPACT					"EXP_IMPACT     [.] "
+#define EXPECTED_GAIN					"EXP_GAIN       [.] "
 #define NUMBER_SINGULARITIES_CHECKUP	"START_SING     [#] "
 #define NUMBER_SINGULARITIES_SCENARIO_0	"S0_SING        [#] "
 #define NUMBER_SINGULARITIES_SCENARIO_1	"S1_SING        [#] "
@@ -31,6 +33,8 @@
 #define CLONING_TIME					"CLONING_TIME   [ms]"
 #define RESTRUCTURING_TIME				"RESTRUCT_TIME  [ms]"
 #define DISTANCE_RELOCATION_TIME		"RELOC_TIME     [ms]"
+
+#define SCALE_FACTOR_QSC 6.0
 
 using namespace std;
 

@@ -71,6 +71,8 @@ namespace quicksc {
 	vector<RuntimeStat> QuickSubsetConstruction::getRuntimeStatsList() {
         vector<RuntimeStat> list = DeterminizationAlgorithm::getRuntimeStatsList();
 		list.push_back(IMPACT);								// Number of processed singularities over the number of transitions
+		list.push_back(EXPECTED_IMPACT); 
+		list.push_back(EXPECTED_GAIN);
 		list.push_back(NUMBER_SINGULARITIES_CHECKUP);
 		list.push_back(NUMBER_SINGULARITIES_SCENARIO_0);
 		list.push_back(NUMBER_SINGULARITIES_SCENARIO_1);
@@ -629,13 +631,20 @@ namespace quicksc {
 				this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_1] +
 				this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_2];
 
+		this->getRuntimeStatsValuesRef()[LEVEL_SINGULARITIES_TOTAL] = 
+				singularities_level_sum 
+				/ ((double) this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_TOTAL]);
+
 		this->getRuntimeStatsValuesRef()[IMPACT] =
 				((double) this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_TOTAL])
 				/ dfa->getTransitionsCount();
 
-		this->getRuntimeStatsValuesRef()[LEVEL_SINGULARITIES_TOTAL] = 
-				singularities_level_sum 
-				/ ((double) this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_TOTAL]);
+		double exp_impact = ((double) this->getRuntimeStatsValuesRef()[IMPACT]) * SCALE_FACTOR_QSC;
+		this->getRuntimeStatsValuesRef()[EXPECTED_IMPACT] = exp_impact;
+
+		this->getRuntimeStatsValuesRef()[EXPECTED_GAIN] = exp_impact <= 1.0 ?
+				1.0 - exp_impact :
+				1.0 / exp_impact - 1.0;
 
 		// Returns the DFA
 		return dfa;

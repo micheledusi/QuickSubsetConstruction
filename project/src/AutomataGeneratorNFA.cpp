@@ -451,8 +451,8 @@ namespace quicksc {
 					label);
 		}
 
+		// Sets the initial state and the states level recursively
 		nfa->setInitialState(states[0]);
-		states[0]->initDistancesRecursively(0);
 
 		return nfa;
 	}
