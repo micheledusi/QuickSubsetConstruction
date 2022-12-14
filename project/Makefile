@@ -26,7 +26,7 @@ ifeq ($(OS),Windows_NT)			# WINDOWS Operative System
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)		# LINUX Operative System
-		CC = g++
+		CC = g++-10
 		CFLAGS=-I$(INCDIR) -g -std=c++20
 		RM = rm -f
 		SOURCES := $(shell find $(SRCDIR) -name '*.cpp')

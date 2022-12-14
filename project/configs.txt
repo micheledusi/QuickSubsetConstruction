@@ -34,7 +34,7 @@ end session
 
 // Structure    = acyclic automata 
 // Change       = increasing size
-// Branch.f.    = 5
+// Branch.f.    = 3
 // Epsilon      = none
 //
 start session
@@ -44,7 +44,7 @@ start session
 
     #alpha = 10
     #size = 200, 400, 600, 800, 1000, 1500, 2000, 2500
-    %transitions = 0.5
+    %transitions = 0.3
     %epsilon = 0.0
 
     ?pstats = 1
