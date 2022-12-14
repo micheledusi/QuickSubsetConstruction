@@ -576,6 +576,7 @@ namespace quicksc {
 			if (do_print) {
 				printf("RESULTS:\n");
 				printf("Based on " COLOR_BLUE("%u") " testcases of automata with these characteristics:\n", this->getTestCaseNumber());
+				printf("Automaton Type         = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonStructure));
 				printf("AlphabetCardinality    = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AlphabetCardinality));
 				printf("Size                   = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSize));
 				printf("TransitionPercentage   = " COLOR_BLUE("%f") "\n", this->m_config_reference->valueOf<double>(AutomatonTransitionsPercentage));
