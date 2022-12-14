@@ -37,7 +37,7 @@ endif
 
 # Main target
 all: $(BINDIR)/$(OUTPUT)
-
+	
 # Compiling the source files into object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
