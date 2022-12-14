@@ -6,16 +6,67 @@
 // "structure 3" means acyclic automata structure
 // "structure 4" means doped automata structure, with one epsilon transitions
 
+
+// SESSIONS
+
+
+// Structure    = random automata 
+// Change       = increasing size
+// Branch.f.    = 3
+// Epsilon      = (1) none, (2) 50.0 %
+//
+start session 
+    #test = 100
+    #rseed = 2
+    structure = 0
+
+    #alpha = 10
+    #size = 100, 200, 400, 600, 800, 1000
+    %transitions = 0.3
+    %epsilon = 0.0, 0.5
+
+    ?pstats = 1
+    ?lstats = 1
+    ?porig = 0
+    ?psolu = 0
+end session
+
+
+// Structure    = acyclic automata 
+// Change       = increasing size
+// Branch.f.    = 5
+// Epsilon      = none
+//
 start session
     #test = 100
     #rseed = 2
-
     structure = 3
 
     #alpha = 10
-    #size = 500, 750, 1000, 1250, 1500, 1750, 2000
+    #size = 200, 400, 600, 800, 1000, 1500, 2000, 2500
     %transitions = 0.5
-    %epsilon = 0.1
+    %epsilon = 0.0
+
+    ?pstats = 1
+    ?lstats = 1
+    ?porig = 0
+    ?psolu = 0
+end session
+
+
+// Structure    = weak non-deterministic automata 
+// Change       = increasing size
+// Branch.f.    = 3
+// Epsilon      = only 1 (the percentage parameter is unused)
+//
+start session
+    #test = 100
+    #rseed = 42
+    structure = 4
+
+    #alpha = 10
+    #size = 200, 400, 600, 800, 1000, 1500, 2000, 2500
+    %transitions = 0.3
 
     ?pstats = 1
     ?lstats = 1
