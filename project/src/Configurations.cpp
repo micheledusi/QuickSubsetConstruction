@@ -271,6 +271,7 @@ namespace quicksc {
 		load(LogStatisticsMin, false);
 		load(LogStatisticsAvg, true);
 		load(LogStatisticsMax, false);
+		load(LogStatisticsDev, true);
 		load(PrintOriginalAutomaton, false);
 		load(PrintSolutionAutomaton, false);
 		load(DrawOriginalAutomaton, false);

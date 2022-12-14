@@ -34,7 +34,7 @@
 #define RESTRUCTURING_TIME				"RESTRUCT_TIME  [ms]"
 #define DISTANCE_RELOCATION_TIME		"RELOC_TIME     [ms]"
 
-#define SCALE_FACTOR_QSC 6.0
+#define SCALE_FACTOR_QSC 1.3
 
 using namespace std;
 

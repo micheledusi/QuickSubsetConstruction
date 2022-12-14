@@ -49,7 +49,7 @@ namespace quicksc {
 		Configurations* m_config_reference;
 		const vector<DeterminizationAlgorithm*>& m_algorithms;
 
-		std::tuple<double, double, double> computeStat(std::function<double(Result*)> getter);
+		std::tuple<double, double, double, double> computeStat(std::function<double(Result*)> getter);
 		std::function<double(Result*)> getStatGetter(ResultStat stat);
 		std::function<double(Result*)> getStatGetter(AlgorithmStat stat, DeterminizationAlgorithm* algorithm);
 		std::function<double(Result*)> getStatGetter(RuntimeStat stat, DeterminizationAlgorithm* algorithm);
@@ -68,9 +68,9 @@ namespace quicksc {
 		unsigned int getTestCaseNumber();
 		double getSuccessPercentage(DeterminizationAlgorithm* algorithm);
 
-		std::tuple<double, double, double> getStat(ResultStat stat);
-		std::tuple<double, double, double> getStat(AlgorithmStat stat, DeterminizationAlgorithm* algorithm);
-		std::tuple<double, double, double> getStat(RuntimeStat stat, DeterminizationAlgorithm* algorithm);
+		std::tuple<double, double, double, double> getStat(ResultStat stat);
+		std::tuple<double, double, double, double> getStat(AlgorithmStat stat, DeterminizationAlgorithm* algorithm);
+		std::tuple<double, double, double, double> getStat(RuntimeStat stat, DeterminizationAlgorithm* algorithm);
 
 		void presentResult(Result* result);
 		void presentResults();

@@ -44,6 +44,7 @@ namespace quicksc {
 		LogStatisticsMin,
 		LogStatisticsAvg,
 		LogStatisticsMax,
+		LogStatisticsDev,
 
 		PrintOriginalAutomaton,
 		PrintSolutionAutomaton,

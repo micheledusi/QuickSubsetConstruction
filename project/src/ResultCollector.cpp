@@ -11,12 +11,13 @@
 #include "ResultCollector.hpp"
 
 #include <fstream>
+#include <math.h>
 
 #include "AutomataDrawer.hpp"
 #include "Properties.hpp"
 #include "QuickSubsetConstruction.hpp"
 
-// #define DEBUG_MODE
+//#define DEBUG_MODE
 #include "Debug.hpp"
 
 using namespace std;
@@ -319,15 +320,16 @@ namespace quicksc {
 	}
 
 	/**
-	 * Returns a triple of values (MIN, AVG, MAX) calculated according to a brief
+	 * Returns a quadruple of values (MIN, AVG, MAX, DEV) calculated according to a brief
 	 * statistical analysis on all the testcases currently contained in the list.
-	 * The values are extracted from each result according to the parameter in
-	 * input.
+	 * The values are extracted from each result according to the parameter in input.
 	 */
-	std::tuple<double, double, double> ResultCollector::computeStat(std::function<double(Result*)> getter) {
+	std::tuple<double, double, double, double> ResultCollector::computeStat(std::function<double(Result*)> getter) {
 		double min = 1E20, sum = 0, max = -2;
+		vector<double> values = vector<double>();
 		for (Result* result : this->m_results) {
 			double current_value = getter(result);
+			values.push_back(current_value);	// Save the value for the computation of the standard deviation
 			if (current_value < min) {
 				min = current_value;
 			}
@@ -336,39 +338,47 @@ namespace quicksc {
 				max = current_value;
 			}
 		}
-		DEBUG_LOG("Computed stat: min = %f, avg = %f, max = %f", min, sum / this->m_results.size(), max);
-		return std::make_tuple(min, (sum / this->m_results.size()), max);
+		// Computing the average
+		double avg = sum / this->m_results.size();
+		// Computing the standard deviation
+		double dev = 0;
+		for (double value : values) {
+			dev += pow(value - avg, 2);
+		}
+		dev = sqrt(dev / this->m_results.size());
+		DEBUG_LOG("Computed stat: min = %f, avg = %f, max = %f, dev = %f", min, avg, max, dev);
+		return std::make_tuple(min, avg, max, dev);
 	}
 
 	/**
-	 * Returns a triple of values (MIN, AVG, MAX) calculated according to a brief
+	 * Returns a triple of values (MIN, AVG, MAX, DEV) calculated according to a brief
 	 * statistical analysis on all the testcases currently contained in the list.
 	 * The values are extracted from each result according to the parameter in
 	 * input.
 	 */
-	std::tuple<double, double, double> ResultCollector::getStat(ResultStat stat) {
+	std::tuple<double, double, double, double> ResultCollector::getStat(ResultStat stat) {
 		auto getter = this->getStatGetter(stat);
 		return this->computeStat(getter);
 	}
 
 	/**
-	 * Returns a triple of values (MIN, AVG, MAX) calculated according to a brief
+	 * Returns a triple of values (MIN, AVG, MAX, DEV) calculated according to a brief
 	 * statistical analysis on all the testcases currently contained in the list.
 	 * The values are extracted from each result according to the parameter in
 	 * input and the algorithm specified.
 	 */
-	std::tuple<double, double, double> ResultCollector::getStat(AlgorithmStat stat, DeterminizationAlgorithm* algorithm) {
+	std::tuple<double, double, double, double> ResultCollector::getStat(AlgorithmStat stat, DeterminizationAlgorithm* algorithm) {
 		auto getter = this->getStatGetter(stat, algorithm);
 		return this->computeStat(getter);
 	}
 
 	/**
-	 * Returns a triple of values (MIN, AVG, MAX) calculated according to a brief
+	 * Returns a triple of values (MIN, AVG, MAX, DEV) calculated according to a brief
 	 * statistical analysis on all the testcases currently contained in the list.
 	 * The values are extracted from each result according to the parameter in
 	 * input and the algorithm specified.
 	 */
-	std::tuple<double, double, double> ResultCollector::getStat(RuntimeStat stat, DeterminizationAlgorithm* algorithm) {
+	std::tuple<double, double, double, double> ResultCollector::getStat(RuntimeStat stat, DeterminizationAlgorithm* algorithm) {
 		auto getter = this->getStatGetter(stat, algorithm);
 		return this->computeStat(getter);
 	}
@@ -451,7 +461,7 @@ namespace quicksc {
 			DEBUG_ASSERT_NOT_NULL(algorithm);
 			DEBUG_ASSERT_NOT_NULL(solution);
 
-			DEBUG_MARK_PHASE("Solution presentation for the algorithm") {
+			DEBUG_MARK_PHASE("Presenting the solution automaton of the algorithm %s", algorithm->name().c_str()) {
 
 				AutomataDrawer drawer = AutomataDrawer(solution);
 
@@ -493,6 +503,7 @@ namespace quicksc {
 				file_out << result_stat_headlines[stat] << " min, ";
 				file_out << result_stat_headlines[stat] << " avg, ";
 				file_out << result_stat_headlines[stat] << " max, ";
+				file_out << result_stat_headlines[stat] << " dev, ";
 			}
 			for (DeterminizationAlgorithm* algo : this->m_algorithms) {
 				for (int int_stat = 0; int_stat < ALGORITHMSTAT_END; int_stat++) {
@@ -500,11 +511,13 @@ namespace quicksc {
 					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " min, ";
 					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " avg, ";
 					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " max, ";
+					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " dev, ";
 				}
 				for (RuntimeStat stat : algo->getRuntimeStatsList()) {
 					file_out << algo->abbr() << " " << stat << " min, ";
 					file_out << algo->abbr() << " "  << stat << " avg, ";
 					file_out << algo->abbr() << " "  << stat << " max, ";
+					file_out << algo->abbr() << " "  << stat << " dev, ";
 				}
 			}
 
@@ -531,7 +544,7 @@ namespace quicksc {
 	/**
 	 * PMacro defining the format of the output.
 	 */
-	#define FORMAT "\t" COLOR_PINK("%-20s %6s") " | %11.4f | %11.4f | %11.4f |\n"
+	#define FORMAT "\t" COLOR_PINK("%-20s %6s") " | %11.4f | %11.4f | %11.4f | %11.4f |\n"
 
 	/**
 	 * Presents the results of the testcases.
@@ -541,114 +554,126 @@ namespace quicksc {
 			this->presentResult(result);
 		}
 
-		bool do_print = this->m_config_reference->valueOf<bool>(PrintStatistics);
-		bool do_log   = this->m_config_reference->valueOf<bool>(LogStatistics);
-		bool do_log_min, do_log_avg, do_log_max;
-		if (do_log) {
-			do_log_min = this->m_config_reference->valueOf<bool>(LogStatisticsMin);
-			do_log_avg = this->m_config_reference->valueOf<bool>(LogStatisticsAvg);
-			do_log_max = this->m_config_reference->valueOf<bool>(LogStatisticsMax);
-		}
-
-		// If no other action is required, return
-		if (!do_print && !do_log) {
-			return;
-		}
-
-		if (do_print) {
-			printf("RESULTS:\n");
-			printf("Based on " COLOR_BLUE("%u") " testcases of automata with these characteristics:\n", this->getTestCaseNumber());
-			printf("AlphabetCardinality    = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AlphabetCardinality));
-			printf("Size                   = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSize));
-			printf("TransitionPercentage   = " COLOR_BLUE("%f") "\n", this->m_config_reference->valueOf<double>(AutomatonTransitionsPercentage));
-			printf("EpsilonPercentage      = " COLOR_BLUE("%.3f") "\n", this->m_config_reference->valueOf<double>(EpsilonPercentage));
-			printf("MaximumDistance        = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonMaxDistance));
-			printf("SafeZoneDistance       = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSafeZoneDistance));
-
-			printf("\n_____________________________|_____" COLOR_YELLOW("MIN") "_____|_____" COLOR_YELLOW("AVG") "_____|_____" COLOR_YELLOW("MAX") "_____|\n");
-			printf("\n" COLOR_PURPLE("Solution") "\n");
-		}
-
-		ofstream file_out;
-		if (do_log) {
-			string stat_file_name = DIR_RESULTS;
-			stat_file_name += string(FILE_NAME_STATS_LOG) + string(FILE_EXTENSION_CSV);
-			this->printLogHeader(stat_file_name);
-			file_out = ofstream(stat_file_name, ios::app);
-
-			file_out << this->m_config_reference->getValueString();
-		}
-
-		//// Computation of the statistics
-
-		// Iteration over all the statistics
-		for (int int_stat = 0; int_stat < RESULTSTAT_END; int_stat++) {
-			ResultStat stat = static_cast<ResultStat>(int_stat);
-			tuple<double, double, double> stat_values = this->getStat(stat);
-			if (do_print) {
-				pair<string, string> stat_str = getStatHeader(result_stat_headlines[stat]);
-				printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
-					std::get<0>(stat_values),
-					std::get<1>(stat_values),
-					std::get<2>(stat_values));
-			}
+		DEBUG_MARK_PHASE("Presenting statistics") {
+			bool do_print = this->m_config_reference->valueOf<bool>(PrintStatistics);
+			bool do_log   = this->m_config_reference->valueOf<bool>(LogStatistics);
+			bool do_log_min, do_log_avg, do_log_max, do_log_dev;
+			
 			if (do_log) {
-				if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
-				if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
-				if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+				do_log_min = this->m_config_reference->valueOf<bool>(LogStatisticsMin);
+				do_log_avg = this->m_config_reference->valueOf<bool>(LogStatisticsAvg);
+				do_log_max = this->m_config_reference->valueOf<bool>(LogStatisticsMax);
+				do_log_dev = this->m_config_reference->valueOf<bool>(LogStatisticsDev);
+				DEBUG_LOG("Set logging statistics to: min: %d, avg: %d, max: %d, dev: %d", do_log_min, do_log_avg, do_log_max, do_log_dev);
 			}
-		}
 
-		// Iteration over all the algorithms
-		for (DeterminizationAlgorithm* algo : this->m_algorithms) {
+			// If no other action is required, return
+			if (!do_print && !do_log) {
+				DEBUG_LOG("No action required (do_print: %d, do_log: %d). Ending procedure.", do_print, do_log);
+				return;
+			}
 
 			if (do_print) {
-				printf("\n" COLOR_PURPLE("%s") "\n", algo->name().c_str());
-				//printf("Success percentage = %f %%\n", (100 * this->getSuccessPercentage(algo)));
+				printf("RESULTS:\n");
+				printf("Based on " COLOR_BLUE("%u") " testcases of automata with these characteristics:\n", this->getTestCaseNumber());
+				printf("AlphabetCardinality    = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AlphabetCardinality));
+				printf("Size                   = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSize));
+				printf("TransitionPercentage   = " COLOR_BLUE("%f") "\n", this->m_config_reference->valueOf<double>(AutomatonTransitionsPercentage));
+				printf("EpsilonPercentage      = " COLOR_BLUE("%.3f") "\n", this->m_config_reference->valueOf<double>(EpsilonPercentage));
+				printf("MaximumDistance        = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonMaxDistance));
+				printf("SafeZoneDistance       = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSafeZoneDistance));
+
+				printf("\n_____________________________________|_____" COLOR_YELLOW("MIN") "_____|_____" COLOR_YELLOW("AVG") "_____|_____" COLOR_YELLOW("MAX") "_____|_____" COLOR_YELLOW("DEV") "_____|\n");
+				printf("\n" COLOR_PURPLE("Solution") "\n");
 			}
 
-			// Iteration over all the statistics depending on the algorithm and the automaton
-			for (int int_stat = 0; int_stat < ALGORITHMSTAT_END; int_stat++) {
-				AlgorithmStat stat = static_cast<AlgorithmStat>(int_stat);
-				tuple<double, double, double> stat_values = this->getStat(stat, algo);
+			ofstream file_out;
+			if (do_log) {
+				string stat_file_name = DIR_RESULTS;
+				stat_file_name += string(FILE_NAME_STATS_LOG) + string(FILE_EXTENSION_CSV);
+				this->printLogHeader(stat_file_name);
+				file_out = ofstream(stat_file_name, ios::app);
+
+				file_out << this->m_config_reference->getValueString();
+			}
+
+			//// Computation of the statistics
+
+			// Iteration over all the statistics
+			for (int int_stat = 0; int_stat < RESULTSTAT_END; int_stat++) {
+				ResultStat stat = static_cast<ResultStat>(int_stat);
+				tuple<double, double, double, double> stat_values = this->getStat(stat);
 				if (do_print) {
-					pair<string, string> stat_str = getStatHeader(algorithm_stat_headlines[stat]);
+					pair<string, string> stat_str = getStatHeader(result_stat_headlines[stat]);
 					printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
 						std::get<0>(stat_values),
 						std::get<1>(stat_values),
-						std::get<2>(stat_values));
+						std::get<2>(stat_values),
+						std::get<3>(stat_values));
 				}
 				if (do_log) {
 					if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
 					if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
 					if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+					if (do_log_dev)	file_out << std::to_string(std::get<3>(stat_values)) << ", ";
 				}
 			}
 
-			// Iteration over all the statistics depending on the algorithm and the automaton and a single execution of the algorithm
-			for (RuntimeStat stat : algo->getRuntimeStatsList()) {
-				tuple<double, double, double> stat_values = this->getStat(stat, algo);
+			// Iteration over all the algorithms
+			for (DeterminizationAlgorithm* algo : this->m_algorithms) {
+
 				if (do_print) {
-					pair<string, string> stat_str = getStatHeader(stat);
-					printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
-						std::get<0>(stat_values),
-						std::get<1>(stat_values),
-						std::get<2>(stat_values));
+					printf("\n" COLOR_PURPLE("%s") "\n", algo->name().c_str());
+					//printf("Success percentage = %f %%\n", (100 * this->getSuccessPercentage(algo)));
 				}
-				if (do_log) {
-					if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
-					if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
-					if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+
+				// Iteration over all the statistics depending on the algorithm and the automaton
+				for (int int_stat = 0; int_stat < ALGORITHMSTAT_END; int_stat++) {
+					AlgorithmStat stat = static_cast<AlgorithmStat>(int_stat);
+					tuple<double, double, double, double> stat_values = this->getStat(stat, algo);
+					if (do_print) {
+						pair<string, string> stat_str = getStatHeader(algorithm_stat_headlines[stat]);
+						printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
+							std::get<0>(stat_values),
+							std::get<1>(stat_values),
+							std::get<2>(stat_values),
+							std::get<3>(stat_values));
+					}
+					if (do_log) {
+						if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
+						if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
+						if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+						if (do_log_dev)	file_out << std::to_string(std::get<3>(stat_values)) << ", ";
+					}
+				}
+
+				// Iteration over all the statistics depending on the algorithm and the automaton and a single execution of the algorithm
+				for (RuntimeStat stat : algo->getRuntimeStatsList()) {
+					tuple<double, double, double, double> stat_values = this->getStat(stat, algo);
+					if (do_print) {
+						pair<string, string> stat_str = getStatHeader(stat);
+						printf(FORMAT, stat_str.first.c_str(), stat_str.second.c_str(),
+							std::get<0>(stat_values),
+							std::get<1>(stat_values),
+							std::get<2>(stat_values),
+							std::get<3>(stat_values));
+					}
+					if (do_log) {
+						if (do_log_min)	file_out << std::to_string(std::get<0>(stat_values)) << ", ";
+						if (do_log_avg)	file_out << std::to_string(std::get<1>(stat_values)) << ", ";
+						if (do_log_max)	file_out << std::to_string(std::get<2>(stat_values)) << ", ";
+						if (do_log_dev)	file_out << std::to_string(std::get<3>(stat_values)) << ", ";
+					}
 				}
 			}
-		}
 
-		if (do_log) {
-			// End of line
-			file_out << std::endl;
+			if (do_log) {
+				// End of line
+				file_out << std::endl;
 
-			// File closing
-			file_out.close();
+				// File closing
+				file_out.close();
+			}
 		}
 	}
 
