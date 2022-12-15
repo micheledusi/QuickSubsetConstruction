@@ -489,6 +489,15 @@ namespace quicksc {
 		ifstream ifile(stat_file_name);
 		ofstream file_out(stat_file_name, ios::app);
 
+		bool do_log   = this->m_config_reference->valueOf<bool>(LogStatistics);
+		bool do_log_min, do_log_avg, do_log_max, do_log_dev;
+		if (do_log) {
+			do_log_min = this->m_config_reference->valueOf<bool>(LogStatisticsMin);
+			do_log_avg = this->m_config_reference->valueOf<bool>(LogStatisticsAvg);
+			do_log_max = this->m_config_reference->valueOf<bool>(LogStatisticsMax);
+			do_log_dev = this->m_config_reference->valueOf<bool>(LogStatisticsDev);
+		}
+
 		if (! (bool)ifile) {
 			for (int setting = 0; setting < SETTINGID_END; setting++) {
 				SettingID id = static_cast<SettingID>(setting);
@@ -500,24 +509,24 @@ namespace quicksc {
 
 			for (int int_stat = 0; int_stat < RESULTSTAT_END; int_stat++) {
 				ResultStat stat = static_cast<ResultStat>(int_stat);
-				file_out << result_stat_headlines[stat] << " min, ";
-				file_out << result_stat_headlines[stat] << " avg, ";
-				file_out << result_stat_headlines[stat] << " max, ";
-				file_out << result_stat_headlines[stat] << " dev, ";
+				if (do_log_min) file_out << result_stat_headlines[stat] << " min, ";
+				if (do_log_avg) file_out << result_stat_headlines[stat] << " avg, ";
+				if (do_log_max) file_out << result_stat_headlines[stat] << " max, ";
+				if (do_log_dev) file_out << result_stat_headlines[stat] << " dev, ";
 			}
 			for (DeterminizationAlgorithm* algo : this->m_algorithms) {
 				for (int int_stat = 0; int_stat < ALGORITHMSTAT_END; int_stat++) {
 					AlgorithmStat stat = static_cast<AlgorithmStat>(int_stat);
-					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " min, ";
-					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " avg, ";
-					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " max, ";
-					file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " dev, ";
+					if (do_log_min) file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " min, ";
+					if (do_log_avg) file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " avg, ";
+					if (do_log_max) file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " max, ";
+					if (do_log_dev) file_out << algo->abbr() << " "  << algorithm_stat_headlines[stat] << " dev, ";
 				}
 				for (RuntimeStat stat : algo->getRuntimeStatsList()) {
-					file_out << algo->abbr() << " " << stat << " min, ";
-					file_out << algo->abbr() << " "  << stat << " avg, ";
-					file_out << algo->abbr() << " "  << stat << " max, ";
-					file_out << algo->abbr() << " "  << stat << " dev, ";
+					if (do_log_min) file_out << algo->abbr() << " " << stat << " min, ";
+					if (do_log_avg) file_out << algo->abbr() << " "  << stat << " avg, ";
+					if (do_log_max) file_out << algo->abbr() << " "  << stat << " max, ";
+					if (do_log_dev) file_out << algo->abbr() << " "  << stat << " dev, ";
 				}
 			}
 
