@@ -16,13 +16,14 @@
 // Epsilon      = only 1 (the percentage parameter is unused)
 //
 start session
-    #test = 100
+    #test = 1
     #rseed = 42
     structure = 4
 
     #alpha = 10
     #size = 100, 150, 225, 338, 506, 759, 1139, 1708, 2563, 3844, 5767, 8650, 12975
-    %transitions = 0.3, 0.5
+    %transitions = 0.3
+    %epsilon = 0.0
 
     ?pstats = 1
     ?lstats = 1

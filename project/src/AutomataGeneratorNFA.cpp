@@ -459,24 +459,50 @@ namespace quicksc {
 
 	/**
 	 * Generates a NFA starting from a DFA and "doping" it, by adding non-determinism.
+	 * It assumes that the DFA has at least two states.
 	 */
 	Automaton* NFAGenerator::generateDopedAutomaton() {
 		// Create a DFA
 		AutomataGenerator* dfa_generator = new DFAGenerator(this->getAlphabet(), this->m_configurations);
 		Automaton* nfa = dfa_generator->generateRandomAutomaton();
 
-		// Get two random different states
+		// Get two random different states and a label
 		vector<State*> states = nfa->getStatesVector();
-		State* s1 = this->getRandomState(states);
-		State* s2;
-		do {
-			s2 = this->getRandomState(states);
-		} while (*s1 == *s2);
-		DEBUG_ASSERT_TRUE( *s1 != *s2 );
+		State *s1, *s2;
+		string label;
+
+		// Decide whether to add an epsilon transition or a non-deterministic transition
+		if (RANDOM_PERCENTAGE <= this->getEpsilonProbability()) {
+			// Add an epsilon transition
+			// The label is epsilon
+			label = EPSILON;
+			// Two random different states are chosen, among the states of the DFA
+			s1 = this->getRandomState(states);
+			do {	
+				s2 = this->getRandomState(states);
+			} while (*s1 == *s2); // The two states must be different
+
+		} else {
+			// Otherwise, we add a non-deterministic transition
+			bool choice_ok = false;
+			do {
+				// The statea are chosen randomly among the states of the DFA
+				s1 = this->getRandomState(states);
+				s2 = this->getRandomState(states);	
+
+				map<string, set<State*>> exiting_transitions = s1->getExitingTransitionsRef();
+				// We choose a random label from the used labels of s1
+				auto it = exiting_transitions.begin();
+				std::advance(it, rand() % exiting_transitions.size());
+				label = it->first;
+				// If it DOES NOT EXIST a transition with the chosen label from s1 to s2, then we can add it
+				// If it DOES EXIST the transition, then we try again
+			} while (s1->hasExitingTransition(label, s2));
+		}
 
 		// Connect them with an epsilon transition
-		s1->connectChild(EPSILON, s2);
-		DEBUG_ASSERT_TRUE( s1->hasExitingTransition(EPSILON, s2) );
+		s1->connectChild(label, s2);
+		DEBUG_ASSERT_TRUE( s1->hasExitingTransition(label, s2) );
 
 		return nfa;
 	}
