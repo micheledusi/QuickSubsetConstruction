@@ -490,6 +490,10 @@ namespace quicksc {
 				s1 = this->getRandomState(states);
 				s2 = this->getRandomState(states);	
 
+				// If the first state has NO outgoing transitions, we skip it
+				if (s1->getExitingTransitionsCount() == 0) {
+					continue;
+				}
 				map<string, set<State*>> exiting_transitions = s1->getExitingTransitionsRef();
 				// We choose a random label from the used labels of s1
 				auto it = exiting_transitions.begin();

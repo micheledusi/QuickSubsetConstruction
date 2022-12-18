@@ -16,7 +16,7 @@
 // Epsilon      = only 1 (the percentage parameter is unused)
 //
 start session
-    #test = 1
+    #test = 100
     #rseed = 42
     structure = 4
 
