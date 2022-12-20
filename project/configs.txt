@@ -10,20 +10,43 @@
 // SESSIONS
 
 
-// Structure    = weak non-deterministic automata 
-// Change       = increasing size
+// Structure    = stratified automata 
+// Change       = increasing determinism
 // Branch.f.    = 3
-// Epsilon      = only 1 (the percentage parameter is unused)
+// Epsilon      = 50% (removed)
 //
 start session
     #test = 100
-    #rseed = 42
-    structure = 4
+    #rseed = 1
+    structure = 2
 
     #alpha = 10
-    #size = 100, 150, 225, 338, 506, 759, 1139, 1708, 2563, 3844, 5767, 8650, 12975
+    #size = 1000
     %transitions = 0.3
-    %epsilon = 0.0
+    %epsilon = 0.5
+    maxdist = 50
+    safezonedist = 0, 10, 20, 30, 40, 50
+
+    ?pstats = 1
+    ?lstats = 1
+    ?porig = 0
+    ?psolu = 0
+end session
+
+// Structure    = random automata 
+// Change       = increasing size
+// Branch.f.    = 3
+// Epsilon      = 50% (removed)
+//
+start session
+    #test = 100
+    #rseed = 1
+    structure = 1
+
+    #alpha = 10
+    #size = 100, 200, 400, 600, 800, 1000
+    %transitions = 0.3
+    %epsilon = 0.5
 
     ?pstats = 1
     ?lstats = 1
