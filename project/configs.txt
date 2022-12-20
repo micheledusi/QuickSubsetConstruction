@@ -16,16 +16,16 @@
 // Epsilon      = 50% (removed)
 //
 start session
-    #test = 100
+    #test = 10
     #rseed = 1
     structure = 2
 
     #alpha = 10
-    #size = 1000
-    %transitions = 0.3
-    %epsilon = 0.5
-    maxdist = 50
-    safezonedist = 0, 10, 20, 30, 40, 50
+    #size = 500
+    %transitions = 0.2
+    %epsilon = 0.1
+    maxdist = 100
+    safezonedist = 0, 20, 40, 60, 80, 99
 
     ?pstats = 1
     ?lstats = 1
@@ -45,8 +45,8 @@ start session
 
     #alpha = 10
     #size = 100, 200, 400, 600, 800, 1000
-    %transitions = 0.3
-    %epsilon = 0.5
+    %transitions = 0.2
+    %epsilon = 0.1
 
     ?pstats = 1
     ?lstats = 1
