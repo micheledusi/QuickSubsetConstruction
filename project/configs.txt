@@ -9,23 +9,20 @@
 
 // SESSIONS
 
-
-// Structure    = stratified automata 
-// Change       = increasing determinism
+// Structure    = acyclic automata (3)
+// Size         = 1000 (fixed)
 // Branch.f.    = 3
-// Epsilon      = 50% (removed)
+// Change       = increasing epsilon percentage
 //
 start session
-    #test = 100
-    #rseed = 1
-    structure = 2
+    #test = 10
+    #rseed = 42
+    structure = 3
 
     #alpha = 10
     #size = 1000
     %transitions = 0.3
-    %epsilon = 0.5
-    maxdist = 50
-    safezonedist = 0, 10, 20, 30, 40, 50
+    %epsilon = 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1
 
     ?pstats = 1
     ?lstats = 1
@@ -33,20 +30,23 @@ start session
     ?psolu = 0
 end session
 
-// Structure    = random automata 
-// Change       = increasing size
+
+// Structure    = stratified automata (2)
+// Size         = 1000 (fixed)
 // Branch.f.    = 3
-// Epsilon      = 50% (removed)
+// Change       = increasing epsilon percentage
 //
 start session
-    #test = 100
-    #rseed = 1
-    structure = 1
+    #test = 10
+    #rseed = 42
+    structure = 2
 
     #alpha = 10
-    #size = 100, 200, 400, 600, 800, 1000
+    #size = 1000
     %transitions = 0.3
-    %epsilon = 0.5
+    %epsilon = 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1
+    maxdist = 300
+    safezonedist = 100
 
     ?pstats = 1
     ?lstats = 1
