@@ -461,7 +461,7 @@ namespace quicksc {
 	 * Generates a NFA starting from a DFA and "doping" it, by adding non-determinism.
 	 * It assumes that the DFA has at least two states.
 	 */
-	Automaton* NFAGenerator::generateDopedAutomaton() {
+	Automaton* NFAGenerator::generateWeakAutomaton() {
 		// Create a DFA
 		AutomataGenerator* dfa_generator = new DFAGenerator(this->getAlphabet(), this->m_configurations);
 		Automaton* nfa = dfa_generator->generateRandomAutomaton();

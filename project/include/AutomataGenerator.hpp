@@ -81,7 +81,7 @@ namespace quicksc {
 		virtual Automaton* generateStratifiedAutomaton();
 		virtual Automaton* generateStratifiedWithSafeZoneAutomaton();
 		virtual Automaton* generateAcyclicAutomaton();
-		virtual Automaton* generateDopedAutomaton();
+		virtual Automaton* generateWeakAutomaton();
 
 	};
 

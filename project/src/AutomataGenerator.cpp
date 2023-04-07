@@ -206,7 +206,7 @@ namespace quicksc {
 			return this->generateAcyclicAutomaton();
 
 		case AUTOMATON_WEAK :
-			return this->generateDopedAutomaton();
+			return this->generateWeakAutomaton();
 
 		default :
 			DEBUG_LOG_ERROR("Unknown value %d in enumeration <AutomatonType>", this->getAutomatonStructure());
@@ -234,8 +234,8 @@ namespace quicksc {
 		AUTOMATON_GENERATION_EXCEPTION(Acyclic);
 	}
 
-	Automaton* AutomataGenerator::generateDopedAutomaton() {
-		AUTOMATON_GENERATION_EXCEPTION(Doped);
+	Automaton* AutomataGenerator::generateWeakAutomaton() {
+		AUTOMATON_GENERATION_EXCEPTION(Weak);
 	}
 
 
