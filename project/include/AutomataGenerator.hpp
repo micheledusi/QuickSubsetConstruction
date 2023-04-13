@@ -32,7 +32,8 @@ namespace quicksc {
 		AUTOMATON_STRATIFIED,
 		AUTOMATON_STRATIFIED_WITH_SAFE_ZONE,
 		AUTOMATON_ACYCLIC,
-		AUTOMATON_WEAK
+		AUTOMATON_WEAK,
+		AUTOMATON_MASLOV
 	} AutomatonType;
 
 	class AutomataGenerator {
@@ -82,6 +83,7 @@ namespace quicksc {
 		virtual Automaton* generateStratifiedWithSafeZoneAutomaton();
 		virtual Automaton* generateAcyclicAutomaton();
 		virtual Automaton* generateWeakAutomaton();
+		virtual Automaton* generateMaslovAutomaton();
 
 	};
 

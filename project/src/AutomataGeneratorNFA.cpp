@@ -512,6 +512,44 @@ namespace quicksc {
 	}
 
 	/**
+	 * Generates a NFA with a specific topology (the Maslov topology).
+	 * 
+	 * This type of automaton is a NFA with N states.
+	 * The first state is the initial state, and the last state is the ONLY final state.
+	 * It has only two labels: "a" and "b".
+	 * Each state has two outgoing transitions, one with label "a" and one with label "b", directed to the next state.
+	 * This has the effect of creating a chain of states, where each state has two outgoing transitions.
+	 * There are two exceptions:
+	 * - The first state has two outgoing transitions, one with label "a" and one with label "b", directed to the first state itself.
+	 *   Also, it has a third outgoing transition, with label "a", directed to the second state.
+	 * - The last state has NO outgoing transitions.
+	*/
+	Automaton* NFAGenerator::generateMaslovAutomaton() {
+		// Creating the NFA object
+		Automaton* nfa = new Automaton();
+		// Generating the states
+		this->generateStates(nfa);
+		vector<State*> states = nfa->getStatesVector();
+		DEBUG_ASSERT_TRUE( this->getSize() == nfa->size() );
+
+		// Connecting the states
+		// Starting from the second state, we connect it the next state with both labels
+		for (int i = 1; i < states.size() - 1; i++) {
+			nfa->connectStates(states[i], states[i + 1], "a");
+			nfa->connectStates(states[i], states[i + 1], "b");
+		}
+		// Managing the first state
+		nfa->connectStates(states[0], states[0], "a");
+		nfa->connectStates(states[0], states[0], "b");
+		nfa->connectStates(states[0], states[1], "a");
+
+		// Setting the initial state
+		nfa->setInitialState(states[0]);
+
+		return nfa;
+	}
+
+	/**
 	 * Generates a list of State objects, each one with a unique name, and inserts them into the NFA passed as parameter.
 	 * The states do not have transitions. The states are as many as the size specified by the NFAGenerator parameters.
 	 */

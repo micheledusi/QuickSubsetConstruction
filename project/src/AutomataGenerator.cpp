@@ -208,6 +208,9 @@ namespace quicksc {
 		case AUTOMATON_WEAK :
 			return this->generateWeakAutomaton();
 
+		case AUTOMATON_MASLOV :
+			return this->generateMaslovAutomaton();
+
 		default :
 			DEBUG_LOG_ERROR("Unknown value %d in enumeration <AutomatonType>", this->getAutomatonStructure());
 			return NULL;
@@ -236,6 +239,10 @@ namespace quicksc {
 
 	Automaton* AutomataGenerator::generateWeakAutomaton() {
 		AUTOMATON_GENERATION_EXCEPTION(Weak);
+	}
+
+	Automaton* AutomataGenerator::generateMaslovAutomaton() {
+		AUTOMATON_GENERATION_EXCEPTION(Maslov);
 	}
 
 
