@@ -36,8 +36,8 @@ namespace quicksc {
 		this->m_transition_percentage = configurations->valueOf<double>(AutomatonTransitionsPercentage);
 		this->m_epsilon_probability = configurations->valueOf<double>(EpsilonPercentage);
 		this->m_final_probability = configurations->valueOf<double>(AutomatonFinalProbability);
-		this->m_max_distance = configurations->valueOf<int>(AutomatonMaxDistance);
-		this->m_safe_zone_distance = configurations->valueOf<int>(AutomatonSafeZoneDistance);
+		this->m_max_level = configurations->valueOf<int>(AutomatonMaxLevel);
+		this->m_safe_zone_level = configurations->valueOf<int>(AutomatonSafeZoneLevel);
 	}
 
 	/**
@@ -158,27 +158,27 @@ namespace quicksc {
 	}
 
 	/**
-	 * Getter method for the maximum distance of a state inside the automaton.
+	 * Getter method for the maximum level of a state inside the automaton.
 	 * This parameter is used only for the generation of stratified automata.
 	 */
-	unsigned int AutomataGenerator::getMaxDistance() {
-		return this->m_max_distance;
+	unsigned int AutomataGenerator::getMaxLevel() {
+		return this->m_max_level;
 	}
 
 	/**
-	 * Getter method for the safe zone distance of a state inside the automaton.
+	 * Getter method for the safe zone level of a state inside the automaton.
 	 * This parameter is used only for the generation of stratified automata.
 	 */
-	void AutomataGenerator::setMaxDistance(unsigned int max_distance) {
-		this->m_max_distance = max_distance;
+	void AutomataGenerator::setMaxLevel(unsigned int max_level) {
+		this->m_max_level = max_level;
 	}
 
 	/**
-	 * Getter method for the safe zone distance.
-	 * This is the distance within which it is not possible to find non-deterministic points, in the case of stratified NFA automata that provide for such a possibility.
+	 * Getter method for the safe zone level.
+	 * This is the level within which it is not possible to find non-deterministic points, in the case of stratified NFA automata that provide for such a possibility.
 	 */
-	unsigned int AutomataGenerator::getSafeZoneDistance() {
-		return this->m_safe_zone_distance;
+	unsigned int AutomataGenerator::getSafeZoneLevel() {
+		return this->m_safe_zone_level;
 	}
 
 	/**

@@ -31,6 +31,13 @@ namespace quicksc {
 	SubsetConstruction::~SubsetConstruction() {};
 
 	/**
+	 * Returns the NFA passed as parameter, optionally converting its states to the proper State class.
+	*/
+	Automaton* SubsetConstruction::prepareInputAutomaton(Automaton* nfa) const {
+		return nfa->cloneConvertingStates<State>();
+	}
+
+	/**
 	 * Returns the DFA obtained by the Subset Construction algorithm.
 	 * It runs the algorithm on the NFA passed as parameter.
 	 */
@@ -88,7 +95,7 @@ namespace quicksc {
 					// If so, we delete the extracted state
                 	DEBUG_LOG("The state %s is already present in the DFA, we can delete the new extracted state", new_state->getName().c_str());
                 	ConstructedState* tmp_state = new_state;
-                    new_state = (ConstructedState*) dfa->getState(tmp_state->getName());
+                    new_state = dynamic_cast<ConstructedState*> (dfa->getState(tmp_state->getName()));
                     delete tmp_state;
                 }
                 // If it's a new state

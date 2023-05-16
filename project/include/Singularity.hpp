@@ -5,7 +5,7 @@
  * Singularity.hpp
  *
  *
- * This header file contains the definition of the Singularity class as a couple of a ConstructedState and a string.
+ * This header file contains the definition of the Singularity class as a couple of a BidirectionalConstructedState and a string.
  * This definition has its own header file because it is used in many other classes; this reduces the number of
  * dependencies of the other classes and increases the modularity of the code.
  *
@@ -30,14 +30,14 @@ namespace quicksc {
 	class Singularity {
 
 	private:
-		ConstructedState* m_state;
+		BidirectionalConstructedState* m_state;
 		string m_label;
 
 	public:
-		Singularity(ConstructedState* state, string label);
+		Singularity(BidirectionalConstructedState* state, string label);
 		~Singularity();
 
-		ConstructedState* getState();
+		BidirectionalConstructedState* getState();
 		string getLabel();
 		string toString();
 
@@ -67,7 +67,7 @@ namespace quicksc {
 		bool insert(Singularity* new_singularity);
 		Singularity* pop();
 		string getFirstLabel();
-		set<string> removeSingularitiesOfState(ConstructedState* state);
+		set<string> removeSingularitiesOfState(BidirectionalConstructedState* state);
 		double getAverageLevel();
 		void sort();
 		void printSingularities();

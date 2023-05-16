@@ -22,32 +22,32 @@
 
 using namespace std;
 
-#define COMPUTE_CORRECTNESS false
-#define DEFAULT_MAX_CONVENIENCE 9999.9999
-#define DEFAULT_MAX_SCALE_FACTOR 9999.9999
+#define COMPUTE_CORRECTNESS true
+#define DEFAULT_MAX_CONVENIENCE 9999999.9999
+#define DEFAULT_MAX_SCALE_FACTOR 9999999.9999
 
 namespace quicksc {
 
 	// Strings for the statistics visualization
 	vector<string> result_stat_headlines = vector<string> {
-		"SOL_SIZE       [#] ",
-		"SOL_GROWTH     [%] ",
-        "SOL_TR_COUNT   [#] ",
+		"SOL_SIZE       [#]   ",
+		"SOL_GROWTH     [%]   ",
+        "SOL_TR_COUNT   [#]   ",
 	};
 
 	// Strings for the statistics visualization
 	vector<string> algorithm_stat_headlines = vector<string> {
 		/* Skip
-		"CORRECTNESS    [%] ",
 		*/
-		"EXEC_TIME      [ms]",	
-		"GAIN           [.] ",	
-		"UNIT_COUNT     [#] ",
-		"VELOCITY       [#/ms]",
-		"SCALE_FACTOR   [.]",
+		"CORRECTNESS    [%]   ",
+		"EXEC_TIME      [ns]  ",	
+		"GAIN           [.]   ",	
+		"UNIT_COUNT     [#]   ",
+		"VELOCITY       [#/ns]",
+		"SCALE_FACTOR   [.]   ",
 		/* Skip
-		"UNIT_TIME      [ms]",
-		"CONVENIENCE    [.] ",
+		"UNIT_TIME      [ns]  ",
+		"CONVENIENCE    [.]   ",
 		*/
 	};
 
@@ -125,7 +125,6 @@ namespace quicksc {
 		std::function<double(Result*)> getter;
 		switch(stat) {
 
-		/*
 		case CORRECTNESS :
 			getter = [algorithm](Result* result) {
 				if (COMPUTE_CORRECTNESS) {
@@ -140,7 +139,6 @@ namespace quicksc {
 				}
 			};
 			break;
-		*/
 
 		case EXECUTION_TIME :
 			getter = [algorithm](Result* result) {
@@ -590,8 +588,8 @@ namespace quicksc {
 				printf("Size                   = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSize));
 				printf("TransitionPercentage   = " COLOR_BLUE("%f") "\n", this->m_config_reference->valueOf<double>(AutomatonTransitionsPercentage));
 				printf("EpsilonPercentage      = " COLOR_BLUE("%.3f") "\n", this->m_config_reference->valueOf<double>(EpsilonPercentage));
-				printf("MaximumDistance        = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonMaxDistance));
-				printf("SafeZoneDistance       = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSafeZoneDistance));
+				printf("MaximumLevel           = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonMaxLevel));
+				printf("SafeZoneLevel          = " COLOR_BLUE("%d") "\n", this->m_config_reference->valueOf<int>(AutomatonSafeZoneLevel));
 
 				printf("\n_____________________________________|_____" COLOR_YELLOW("MIN") "_____|_____" COLOR_YELLOW("AVG") "_____|_____" COLOR_YELLOW("MAX") "_____|_____" COLOR_YELLOW("DEV") "_____|\n");
 				printf("\n" COLOR_PURPLE("Solution") "\n");

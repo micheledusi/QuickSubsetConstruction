@@ -38,7 +38,7 @@ namespace quicksc {
     		s->detachAllTransitions();
     	}
     	for (State* s : m_states) {
-//    		this->m_states.erase(s);
+            delete s;
     	}
 
     	}
@@ -47,7 +47,7 @@ namespace quicksc {
     /**
      * Returns the size of the automaton, i.e. the number of states.
      */
-    int Automaton::size() {
+    int Automaton::size() const {
         return m_states.size();
     }
 
@@ -57,7 +57,7 @@ namespace quicksc {
      * To perform a comparison by name it is advisable to use
      * the same method that accepts a string as input.
      */
-    bool Automaton::hasState(State* s) {
+    bool Automaton::hasState(State* s) const {
         return m_states.find(s) != m_states.end();
     }
 
@@ -66,13 +66,38 @@ namespace quicksc {
      * Comparisons are made by name, NOT by pointer.
      * In case of states with the same name, this method would return a positive result.
      */
-    bool Automaton::hasState(string name) {
+    bool Automaton::hasState(string name) const {
     	for (State* s : m_states) {
     		if (s->getName() == name) {
     			return true;
     		}
     	}
     	return false;
+    }
+
+    /**
+     * Checks if a state associated with a certain name is set as the initial state.
+     */
+    bool Automaton::isInitial(string name) const {
+        return (m_initial_state->getName() == name);
+    }
+
+    /**
+     * Checks if a state is set as the initial state.
+     */
+    bool Automaton::isInitial(State* s) const {
+        return (m_initial_state == s);
+        /*
+         * Note: previously the comparison was performed by name, but since the equality operator has been defined as a name comparison,
+         * this implementation should not cause problems.
+         */
+    }
+
+    /**
+     * Returns the initial state.
+     */
+    State* Automaton::getInitialState() const {
+        return m_initial_state;
     }
 
     /**
@@ -85,7 +110,7 @@ namespace quicksc {
      * To avoid problems related to identical states, it is recommended to use the "getStatesByName" method
      * which returns a set containing ALL states with the same name.
      */
-    State* Automaton::getState(string name) {
+    State* Automaton::getState(string name) const {
     	for (State* s : m_states) {
     		if (s->getName() == name) {
     			return s;
@@ -100,7 +125,7 @@ namespace quicksc {
      * However, during the execution of construction algorithms, the automaton may be in special conditions
      * where there is more than one state with the same name. In that case, it is better to use this method and not "getState".
      */
-    const vector<State*> Automaton::getStatesByName(string name) {
+    const vector<State*> Automaton::getStatesByName(string name) const {
     	vector<State*> namesake_states; // Homonymous states
     	for (State* s : m_states) {
     		if (s->getName() == name) {
@@ -108,6 +133,56 @@ namespace quicksc {
     		}
     	}
     	return namesake_states;
+    }
+
+    /**
+     * Returns the list of all the states of the automaton in the form of a list.
+     * The states are returned as pointers.
+     * The "list" class allows an addition or removal in the middle of the list without reallocation of the queue.
+     */
+    const list<State*> Automaton::getStatesList() const {
+    	return list<State*>(m_states.begin(), m_states.end());
+    }
+
+    /**
+     * Returns the dynamic vector of all the states of the automaton in the form of vector.
+     * The states are returned as pointers.
+     * The "vector" class allows random access with constant time.
+     */
+    const vector<State*> Automaton::getStatesVector() const {
+    	return vector<State*>(m_states.begin(), m_states.end());
+    }
+
+    /**
+     * Returns the total number of transitions of the automaton.
+     */
+    unsigned int Automaton::getTransitionsCount() const {
+        unsigned int count = 0;
+        for (State* s : m_states) {
+            count += s->getExitingTransitionsCount();
+        }
+        return count;
+    }
+
+    /**
+     * Returns the alphabet of the automaton.
+     * 
+     * NOTE: This method does not necessarily return the entire alphabet on which the automaton was
+     * defined in principle, because an automaton DOES NOT maintain a reference to such alphabet.
+     * On the contrary, it computes the alphabet by collecting all the labels in all the transitions
+     * of the automaton. For this reason, it can be expensive in terms of performance.
+     */
+    const Alphabet Automaton::getAlphabet() const {
+        Alphabet alphabet = Alphabet();
+        for (State* s : m_states) {
+            for (auto &trans: s->getExitingTransitionsRef()) {
+            	auto iterator = std::find(alphabet.begin(), alphabet.end(), trans.first);
+            	if (iterator == alphabet.end()) {
+            		alphabet.push_back(trans.first);
+            	}
+            }
+        }
+        return alphabet;
     }
 
     /**
@@ -155,7 +230,10 @@ namespace quicksc {
     void Automaton::setInitialState(State* s) {
     	if (hasState(s)) {
 			m_initial_state = s;
-	    	s->initDistancesRecursively(0);
+            if (s->isBidirectional()) {
+                BidirectionalState* bidir_s = dynamic_cast<BidirectionalState*>(s);
+	    	    bidir_s->initLevelsRecursively(0);
+            }
     	} else {
     		DEBUG_LOG_ERROR("Impossible to set %s as the initial state because it does not belong to the automaton", s->getName().c_str());
     	}
@@ -179,33 +257,33 @@ namespace quicksc {
     void Automaton::setInitialState(string name) {
     	if (hasState(name)) {
 			m_initial_state = getState(name);
-	    	m_initial_state->initDistancesRecursively(0);
+            this->setInitialState(m_initial_state);
     	}
     }
 
     /**
-     * Checks if a state associated with a certain name is set as the initial state.
+     * Inserts a transition between the two states marked with the label passed as a parameter.
+     * The method works only if both states are part of the automaton, and in this case it returns TRUE.
+     * Otherwise it returns FALSE.
+     * 
+     * ATTENTION: The return values is NOT related to the fact that the transition has been inserted or not.
      */
-    bool Automaton::isInitial(string name) {
-        return (m_initial_state->getName() == name);
+    bool Automaton::connectStates(State *from, State *to, string label) {
+    	if (this->hasState(from) && this->hasState(to)) {
+    		from->connectChild(label, to);
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
 
     /**
-     * Checks if a state is set as the initial state.
+     * Inserts a transition between the two states marked with the label passed as a parameter.
+     * The method works only if both states are part of the automaton, and in this case it returns TRUE.
+     * Otherwise it returns FALSE.
      */
-    bool Automaton::isInitial(State* s) {
-        return (m_initial_state == s);
-        /*
-         * Note: previously the comparison was performed by name, but since the equality operator has been defined as a name comparison,
-         * this implementation should not cause problems.
-         */
-    }
-
-    /**
-     * Returns the initial state.
-     */
-    State* Automaton::getInitialState() {
-        return m_initial_state;
+    bool Automaton::connectStates(string from, string to, string label) {
+    	return this->connectStates(getState(from), getState(to), label);
     }
 
     /**
@@ -258,78 +336,26 @@ namespace quicksc {
     }
 
     /**
-     * Returns the list of all the states of the automaton in the form of a list.
-     * The states are returned as pointers.
-     * The "list" class allows an addition or removal in the middle of the list without reallocation of the queue.
+     * Recomputes all the levels of the states of the automaton from the initial state.
+     * In order to do this, it uses the BFS algorithm, resetting all the levels in advance.
+     * Then it calls the "initLevelsRecursively" method, which will perform the actual computation.
+     *
      */
-    const list<State*> Automaton::getStatesList() {
-    	return list<State*>(m_states.begin(), m_states.end());
-    }
-
-    /**
-     * Returns the dynamic vector of all the states of the automaton in the form of vector.
-     * The states are returned as pointers.
-     * The "vector" class allows random access with constant time.
-     */
-    const vector<State*> Automaton::getStatesVector() {
-    	return vector<State*>(m_states.begin(), m_states.end());
-    }
-
-    /**
-     * Returns the total number of transitions of the automaton.
-     */
-    unsigned int Automaton::getTransitionsCount() {
-        unsigned int count = 0;
-        for (State* s : m_states) {
-            count += s->getExitingTransitionsCount();
-        }
-        return count;
-    }
-
-    /**
-     * Returns the alphabet of the automaton.
-     * NOTE: This method does not necessarily return the entire alphabet on which the automaton was
-     * defined in principle, because an automaton DOES NOT maintain a reference to such alphabet.
-     * On the contrary, it computes the alphabet by analyzing all the labels present in all the transitions
-     * of the automaton. For this reason, it can be expensive in terms of performance.
-     */
-    const Alphabet Automaton::getAlphabet() {
-        Alphabet alphabet = Alphabet();
-        for (State* s : m_states) {
-            for (auto &trans: s->getExitingTransitionsRef()) {
-            	auto iterator = std::find(alphabet.begin(), alphabet.end(), trans.first);
-            	if (iterator == alphabet.end()) {
-            		alphabet.push_back(trans.first);
-            	}
+    void Automaton::recomputeAllLevels() {
+        // Reset all the distances
+        for (State* s : this->m_states) {
+            if (s->isBidirectional()) {
+                // Checking the dynamic cast is not necessary, since the method isBidirectional() returns true only if the cast is possible
+                BidirectionalState* bidir_state = dynamic_cast<BidirectionalState*>(s);
+                bidir_state->setLevel(DEFAULT_VOID_LEVEL);
+            } else {
+                throw std::runtime_error("Cannot recompute levels on a non-bidirectional automaton");
             }
         }
 
-        return alphabet;
-    }
-
-    /**
-     * Inserts a transition between the two states marked with the label passed as a parameter.
-     * The method works only if both states are part of the automaton, and in this case it returns TRUE.
-     * Otherwise it returns FALSE.
-     * 
-     * ATTENTION: The return values is NOT related to the fact that the transition has been inserted or not.
-     */
-    bool Automaton::connectStates(State *from, State *to, string label) {
-    	if (this->hasState(from) && this->hasState(to)) {
-    		from->connectChild(label, to);
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
-
-    /**
-     * Inserts a transition between the two states marked with the label passed as a parameter.
-     * The method works only if both states are part of the automaton, and in this case it returns TRUE.
-     * Otherwise it returns FALSE.
-     */
-    bool Automaton::connectStates(string from, string to, string label) {
-    	return this->connectStates(getState(from), getState(to), label);
+        // Set the distance of the initial state to 0
+        // And sets the distance of all the other states recursively
+        dynamic_cast<BidirectionalState*>(this->m_initial_state)->initLevelsRecursively(0);
     }
 
     /**
@@ -380,23 +406,6 @@ namespace quicksc {
     	return clone;
     }
 
-    /**
-     * Recomputes all the distances of the states of the automaton from the initial state.
-     * In order to do this, it uses the BFS algorithm, resetting all the distances in advance.
-     * Then it calls the initDistanceRecursive method, which will perform the actual computation.
-     *
-     */
-    void Automaton::recomputeAllDistances() {
-        // Reset all the distances
-        for (State* s : this->m_states) {
-            s->setDistance(DEFAULT_VOID_DISTANCE);
-        }
-
-        // Set the distance of the initial state to 0
-        // And sets the distance of all the other states recursively
-        this->m_initial_state->initDistancesRecursively(0);
-    }
-
     /** 
      * Equality operator for automata. 
      */
@@ -431,7 +440,7 @@ namespace quicksc {
         		}
 
         	} else {
-        		DEBUG_LOG("In the secon automata, there's no state with name \"%s\", which is instead contained in the first automaton", state->getName().c_str());
+        		DEBUG_LOG("In the second automata, there's no state with name \"%s\", which is instead contained in the first automaton", state->getName().c_str());
         		return false;
         	}
         }

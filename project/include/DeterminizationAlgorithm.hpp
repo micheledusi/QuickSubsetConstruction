@@ -45,6 +45,7 @@ namespace quicksc {
 		virtual vector<RuntimeStat> getRuntimeStatsList();
 		virtual map<RuntimeStat, double> getRuntimeStatsValues();
 
+		virtual Automaton* prepareInputAutomaton(Automaton* nfa) const = 0;
 		virtual Automaton* run(Automaton* nfa) = 0;       	// Pure virtual method -> it must be implemented by the subclasses
 
 	};

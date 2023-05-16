@@ -258,13 +258,13 @@ namespace quicksc {
 		// Default environment properties
 		load(AutomatonSize, 100);
 		load(EpsilonPercentage, 0.2);
-		load(AutomatonMaxDistance, 20);
-		load(AutomatonSafeZoneDistance, 10);
+		load(AutomatonMaxLevel, 20);
+		load(AutomatonSafeZoneLevel, 10);
 
 		// Modules and special properties
 		load(ActiveAutomatonPruning, true); 				// If it's true, the automaton is pruned before the computation
 		load(ActiveRemovingLabel, true); 					// If it's true, a special label is used to refer to the epsilon transitions, that has to be removed in the end
-		load(ActiveDistanceCheckInTranslation, false); 		// If it's true, the translation generates the singularities only if they satisfy a distance constraint [TODO: it's a bugged feature]
+		load(ActiveLevelCheckInTranslation, false); 		// If it's true, the translation generates the singularities only if they satisfy a distance constraint [TODO: it's a bugged feature]
 
 		load(PrintStatistics, true);
 		load(LogStatistics, true);
@@ -392,11 +392,11 @@ namespace quicksc {
 			{ AutomatonSize , 				"Automaton's size (#states)",	 			"#size", true },
 			{ AutomatonFinalProbability , 	"Automaton's final states probability", 	"%finals", false },
 			{ AutomatonTransitionsPercentage , "Automaton's transitions percentage", 	"%transitions", true },
-			{ AutomatonMaxDistance , 		"Automaton's max distance", 				"maxdist", true },
-			{ AutomatonSafeZoneDistance , 	"Automaton's safe-zone distance", 			"safezonedist", true },
+			{ AutomatonMaxLevel , 		"Automaton's max distance", 				"maxdist", true },
+			{ AutomatonSafeZoneLevel , 	"Automaton's safe-zone distance", 			"safezonedist", true },
 			{ ActiveAutomatonPruning , 		"Active \"automaton pruning\"", 			"?autompruning", false },
 			{ ActiveRemovingLabel , 		"Active \"removing label\"", 				"?removlabel", false },
-			{ ActiveDistanceCheckInTranslation , "Active \"distance check in translation\"", "?distcheck",  false },
+			{ ActiveLevelCheckInTranslation , "Active \"distance check in translation\"", "?distcheck",  false },
 			{ PrintStatistics , 			"Print statistics", 						"?pstats", false },
 			{ LogStatistics , 				"Log statistics in file", 					"?lstats", false },
 			{ LogStatisticsMin , 			"Log in file the minimum value of a stat", 	"?lstatsmin", false},

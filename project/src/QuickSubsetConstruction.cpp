@@ -88,6 +88,13 @@ namespace quicksc {
     }
 
 	/**
+	 * Returns the NFA passed as parameter, optionally converting its states to the proper State class.
+	*/
+	Automaton* QuickSubsetConstruction::prepareInputAutomaton(Automaton* nfa) const {
+		return nfa->cloneConvertingStates<BidirectionalState>();
+	}
+
+	/**
 	 * Executes the algorithm on the given inputs.
 	 */
 	Automaton* QuickSubsetConstruction::run(Automaton* nfa) {
@@ -106,7 +113,7 @@ namespace quicksc {
 		Automaton* dfa = new Automaton();
 
 		// Local auxiliary variables
-		map<State*, ConstructedState*> states_map = map<State*, ConstructedState*>(); 
+		map<BidirectionalState*, BidirectionalConstructedState*> states_map = map<BidirectionalState*, BidirectionalConstructedState*>(); 
 		// Since it's necessary to generate an automaton isomorphic to the original one, 
 		// this map maintains the correspondence between the states of the NFA and the ones of the DFA.
 
@@ -123,30 +130,32 @@ namespace quicksc {
 
 			// Iterating on all the states of the input automaton to create the corresponding states
 			for (State* nfa_state : nfa->getStatesVector()) {
+				BidirectionalState* nfa_bidirectional_state = dynamic_cast<BidirectionalState*>(nfa_state);
 
 				// Creating a copied state in the DFA
 				// The copied state will be a ConstructedState, that is a subclass of the State class.
 				Extension extension;
-				extension.insert(nfa_state);
-				ConstructedState* dfa_state = new ConstructedState(extension);
+				extension.insert(nfa_bidirectional_state);
+				BidirectionalConstructedState* dfa_state = new BidirectionalConstructedState(extension);
 				dfa->addState(dfa_state);
-				dfa_state->setDistance(nfa_state->getDistance());
+				dfa_state->setLevel(nfa_bidirectional_state->getLevel());
 
 				// In order to maintain the association, we insert a new couple in the map
-				states_map[nfa_state] = dfa_state;
+				states_map[nfa_bidirectional_state] = dfa_state;
 
 			}
 			// Once all the states are created, we can start to create the transitions
 
 			// Iterating on all the states of the input automaton to create the corresponding transitions
 			for (State* nfa_state : nfa->getStatesVector()) {
-				DEBUG_LOG("Considering NFA's state %s", nfa_state->getName().c_str());
+				BidirectionalState* nfa_bidirectional_state = dynamic_cast<BidirectionalState*>(nfa_state);
+				DEBUG_LOG("Considering NFA's state %s", nfa_bidirectional_state->getName().c_str());
 
 				// Retrieve the state created in the previous phase, associated to the state of the original automaton
-				ConstructedState* dfa_state = states_map[nfa_state];
+				BidirectionalConstructedState* dfa_state = states_map[nfa_bidirectional_state];
 
 				// Iterating over all the transitions outgoing from the NFA's state
-				for (auto &pair : nfa_state->getExitingTransitions()) {
+				for (auto &pair : nfa_bidirectional_state->getExitingTransitions()) {
 
 					// Current label
 					string current_label = pair.first;
@@ -156,7 +165,7 @@ namespace quicksc {
 
 					// ***** SINGULARITY of type (1) ***** 
 					// If the state is the initial one, and the label is the empty string, it's a singularity
-					if (nfa->isInitial(nfa_state) && current_label == EPSILON) {
+					if (nfa->isInitial(nfa_bidirectional_state) && current_label == EPSILON) {
 						DEBUG_LOG("The NFA needs a singularity of type (1), i.e. a singularity for the initial state and the epsilon string");
 						// Add the singularity, that will be the first to be processed
 						this->addSingularityToList(dfa_state, current_label);
@@ -165,25 +174,26 @@ namespace quicksc {
 
 					// For all the children states reached by transitions marked with the original label
 					for (State* nfa_child : pair.second) {
+						BidirectionalState* nfa_bidirectional_child = dynamic_cast<BidirectionalState*>(nfa_child);
 
 						// Exclude the case with looping epsilon-transition
-						if (nfa_child == nfa_state && current_label == EPSILON) {
+						if (nfa_bidirectional_child == nfa_bidirectional_state && current_label == EPSILON) {
 							continue;
 						}
 
 						// Inserting the transition of the NFA in the copy of the DFA
 						// The transition is marked with the same label, whatever it is
-						State* dfa_child = states_map[nfa_child];
+						State* dfa_child = states_map[nfa_bidirectional_child];
 						dfa_state->connectChild(current_label, dfa_child);
 
 						// ***** SINGULARITY of type (2) ***** 
 						// If the transition has an epsilon-transition outgoing from the child node, and it's not an epsilon-transition
-						if (!added_singularity_flag && pair.first != EPSILON && nfa_child->hasExitingTransition(EPSILON)) {
+						if (!added_singularity_flag && current_label != EPSILON && nfa_bidirectional_child->hasExitingTransition(EPSILON)) {
 
 							// I need to check that it's not a looping epsilon-transition
 							bool is_not_epsilon_ring = false;
-							for (State* nfa_grandchild : nfa_child->getChildren(EPSILON)) {
-								if (nfa_grandchild != nfa_child) {
+							for (State* nfa_grandchild : nfa_bidirectional_child->getChildren(EPSILON)) {
+								if (nfa_grandchild != nfa_bidirectional_child) {
 									is_not_epsilon_ring = true;
 									break;
 								}
@@ -208,8 +218,9 @@ namespace quicksc {
 
 			} // Iterations over states
 
-			// Set the initial state of the DFA copy, based on the initial state of the NFA, and compute the distances
-			dfa->setInitialState(states_map[nfa->getInitialState()]);
+			// Set the initial state of the DFA copy, based on the initial state of the NFA, and compute the levels
+			BidirectionalState* nfa_initial_state = dynamic_cast<BidirectionalState*>(nfa->getInitialState());
+			dfa->setInitialState(states_map[nfa_initial_state]);
 
 		} // End measuring cloning time
 		this->getRuntimeStatsValuesRef()[CLONING_TIME] = cloning_time;
@@ -244,7 +255,7 @@ namespace quicksc {
 				Singularity* initial_singularity = this->m_singularities->pop();
 
 				// Preparing the references to the state and the label
-				ConstructedState* initial_dfa_state = initial_singularity->getState();
+				BidirectionalConstructedState* initial_dfa_state = initial_singularity->getState();
 
 				// Compute the epsilon closure of the initial state on the DFA, denoted also |D
 				Extension d0_eps_closure = ConstructedState::computeEpsilonClosure(initial_dfa_state);
@@ -255,7 +266,7 @@ namespace quicksc {
 				// Computing the unsafe states set, denoted also {U}
 				Extension unsafe_states = Extension();
 				for (State* dfa_closure_state : d0_eps_closure) {
-					ConstructedState* c_dfa_closure_state = static_cast<ConstructedState*> (dfa_closure_state);
+					BidirectionalConstructedState* c_dfa_closure_state = dynamic_cast<BidirectionalConstructedState*> (dfa_closure_state);
 
 					// Considering the unsafe states
 					if (c_dfa_closure_state->isUnsafe(initial_dfa_state, EPSILON)) {
@@ -299,16 +310,17 @@ namespace quicksc {
 
 				// Iterating over all the unsafe states
 				for (State* unsafe : unsafe_states) {
+					BidirectionalConstructedState* bc_unsafe = dynamic_cast<BidirectionalConstructedState*> (unsafe);
 
 					// For all the outgoing transitions of the unsafe state
-					for (auto &pair : unsafe->getExitingTransitionsRef()) {
+					for (auto &pair : bc_unsafe->getExitingTransitionsRef()) {
 						// If the label is not epsilon
 						if (pair.first == EPSILON) {
 							continue;
 						}
 
 						for (State* unsafe_child : pair.second) {
-							ConstructedState* c_unsafe_child = static_cast<ConstructedState*> (unsafe_child);
+							ConstructedState* c_unsafe_child = dynamic_cast<ConstructedState*> (unsafe_child);
 
 							// Check if the child is NOT unsafe
 							if (!c_unsafe_child->isMarked()) {
@@ -320,19 +332,19 @@ namespace quicksc {
 					}
 
 					// For all the transitions entering the unsafe state
-					for (auto &pair : unsafe->getIncomingTransitionsRef()) {
+					for (auto &pair : bc_unsafe->getIncomingTransitionsRef()) {
 						// If the label is not epsilon
 						if (pair.first == EPSILON) {
 							continue;
 						}
 
 						for (State* unsafe_parent : pair.second) {
-							ConstructedState* c_unsafe_parent = static_cast<ConstructedState*> (unsafe_parent);
+							BidirectionalConstructedState* bc_unsafe_parent = dynamic_cast<BidirectionalConstructedState*> (unsafe_parent);
 
 							// Check if the parent is NOT unsafe
-							if (!c_unsafe_parent->isMarked()) {
+							if (!bc_unsafe_parent->isMarked()) {
 								// If it's not unsafe, then I create the singularity
-								this->addSingularityToList(c_unsafe_parent, pair.first);
+								this->addSingularityToList(bc_unsafe_parent, pair.first);
 							}
 						}
 					}
@@ -342,7 +354,7 @@ namespace quicksc {
 				for (State* unsafe : unsafe_states) {
 					DEBUG_LOG("Removing the unsafe state: %s", unsafe->getName().c_str());
 					dfa->removeState(unsafe);
-					this->m_singularities->removeSingularitiesOfState(static_cast<ConstructedState*>(unsafe));
+					this->m_singularities->removeSingularitiesOfState(dynamic_cast<BidirectionalConstructedState*>(unsafe));
 				}
 
 			}
@@ -372,12 +384,12 @@ namespace quicksc {
 				DEBUG_WAIT_USER_ENTER();
 
 				// References to the state and the label of the singularity
-				ConstructedState* current_singularity_state = current_singularity->getState();
+				BidirectionalConstructedState* current_singularity_state = current_singularity->getState();
 				string current_singularity_label = current_singularity->getLabel();
 
 				// Compute the ell-clousure of the state of the singularity, with the singularity label
 				Extension nfa_l_closure = current_singularity_state->computeLClosureOfExtension(current_singularity_label); // In the algorithm, this is called "|N|" (a bold "N")
-				string nfa_l_closure_name = ConstructedState::createNameFromExtension(nfa_l_closure);
+				string nfa_l_closure_name = BidirectionalConstructedState::createNameFromExtension(nfa_l_closure);
 				DEBUG_LOG("|N| = %s", nfa_l_closure_name.c_str());
 
 
@@ -387,29 +399,29 @@ namespace quicksc {
 				if (!current_singularity_state->hasExitingTransition(current_singularity_label)) {
 					DEBUG_LOG(COLOR_PINK("SCENARIO 1"));
 					this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_1] += 1;
-					singularities_level_sum += current_singularity_state->getDistance();
+					singularities_level_sum += current_singularity_state->getLevel();
 
 					// If the state already exists in the DFA
 					if (dfa->hasState(nfa_l_closure_name)) {
 
 						// Adding the transition from the state of the singularity to the state of the ell-closure
-						State* child = dfa->getState(nfa_l_closure_name);
+						BidirectionalConstructedState* child = dynamic_cast<BidirectionalConstructedState*>(dfa->getState(nfa_l_closure_name));
 						current_singularity_state->connectChild(current_singularity_label, child);
 						DEBUG_LOG("Creating the transition: %s --(%s)--> %s",
 								current_singularity_state->getName().c_str(), current_singularity_label.c_str(), child->getName().c_str());
 
-						// Fix the distance
-						this->runDistanceRelocation(child, current_singularity_state->getDistance() + 1);
+						// Fix the level
+						this->runLevelRelocation(child, current_singularity_state->getLevel() + 1);
 
 					}
 					// If the state does not exists in the DFA
 					else {
 
 						// Create a new state and connect it to the current state
-						ConstructedState* new_state = new ConstructedState(nfa_l_closure);
+						BidirectionalConstructedState* new_state = new BidirectionalConstructedState(nfa_l_closure);
 						dfa->addState(new_state);
 						current_singularity_state->connectChild(current_singularity_label, new_state);
-						new_state->setDistance(current_singularity_state->getDistance() + 1);
+						new_state->setLevel(current_singularity_state->getLevel() + 1);
 
 						DEBUG_LOG("Creating the transition: %s --(%s)--> %s",
 								current_singularity_state->getName().c_str(), current_singularity_label.c_str(), new_state->getName().c_str());
@@ -450,7 +462,7 @@ namespace quicksc {
 						// Otherwise
 						else {
 							DEBUG_LOG("The child state %s has no exiting epsilon-transitions", current_singularity_child->getName().c_str());
-							ConstructedState* c_current_singularity_child = static_cast<ConstructedState*> (current_singularity_child);
+							BidirectionalConstructedState* c_current_singularity_child = dynamic_cast<BidirectionalConstructedState*> (current_singularity_child);
 							if (!c_current_singularity_child->hasExtension(nfa_l_closure)) {
 								DEBUG_LOG("The child state has an extension different from |N|; its extension is %s", nfa_l_closure_name.c_str());
 								scenario_2_flag = true;
@@ -468,26 +480,26 @@ namespace quicksc {
 
 					DEBUG_LOG(COLOR_PINK("SCENARIO 2"));
 					this->getRuntimeStatsValuesRef()[NUMBER_SINGULARITIES_SCENARIO_2] += 1;
-					singularities_level_sum += current_singularity_state->getDistance();
+					singularities_level_sum += current_singularity_state->getLevel();
 
 					Extension dfa_l_closure = current_singularity_state->computeLClosure(current_singularity_label);
 					DEBUG_LOG("The ell-closure on the DFA (denoted |D) contains %lu states", dfa_l_closure.size());
 
 					// Computing the list of unsafe states
-					Extension unsafe_states;
+					set<BidirectionalConstructedState*, State::Comparator> unsafe_states;
 					for (State* ell_child : dfa_l_closure) {
-						ConstructedState* c_ell_child = static_cast<ConstructedState*> (ell_child);
+						BidirectionalConstructedState* c_ell_child = dynamic_cast<BidirectionalConstructedState*> (ell_child);
 
 						if (c_ell_child->isUnsafe(current_singularity_state, current_singularity_label)) {
 							// Adding to the list the state
-							unsafe_states.insert(ell_child);
+							unsafe_states.insert(c_ell_child);
 							c_ell_child->setMarked(true);
 							// Removing the outgoing singularities from the state
-							this->m_singularities->removeSingularitiesOfState(static_cast<ConstructedState*>(c_ell_child));
+							this->m_singularities->removeSingularitiesOfState(dynamic_cast<BidirectionalConstructedState*>(c_ell_child));
 						}
 					}
 
-					ConstructedState* dfa_new_state = static_cast<ConstructedState*> (dfa->getState(nfa_l_closure_name));
+					BidirectionalConstructedState* dfa_new_state = dynamic_cast<BidirectionalConstructedState*> (dfa->getState(nfa_l_closure_name));
 
 					// Checks if the state already exists in the DFA and it is not unsafe
 					if (dfa_new_state != NULL && !dfa_new_state->isMarked()) {
@@ -496,8 +508,8 @@ namespace quicksc {
 					// There's no state with extension |N
 					else {
 						DEBUG_LOG("Creating a new state with extension |N");
-						dfa_new_state = new ConstructedState(nfa_l_closure);
-						dfa_new_state->setDistance(current_singularity_state->getDistance() + 1);
+						dfa_new_state = new BidirectionalConstructedState(nfa_l_closure);
+						dfa_new_state->setLevel(current_singularity_state->getLevel() + 1);
 						dfa->addState(dfa_new_state);
 					}
 
@@ -514,7 +526,8 @@ namespace quicksc {
 						current_singularity_state->disconnectChild(current_singularity_label, current_singularity_child);
 					}
 					
-					for (State* unsafe : unsafe_states) {
+					for (BidirectionalConstructedState* unsafe : unsafe_states) {
+
 
 						// For each outgoing transition from |U
 						for (auto &pair : unsafe->getExitingTransitionsRef()) {
@@ -526,7 +539,7 @@ namespace quicksc {
 
 							// Iterating over the children of the unsafe state
 							for (State* unsafe_child : pair.second) {
-								ConstructedState* c_unsafe_child = static_cast<ConstructedState*> (unsafe_child);
+								BidirectionalConstructedState* c_unsafe_child = dynamic_cast<BidirectionalConstructedState*> (unsafe_child);
 
 								// If the transition arrives in a state that is not unsafe, so outside from |U
 								if (!c_unsafe_child->isMarked()) {
@@ -547,7 +560,7 @@ namespace quicksc {
 
 							// Iterating over the parents of the unsafe state
 							for (State* unsafe_parent : pair.second) {
-								ConstructedState* c_unsafe_parent = static_cast<ConstructedState*> (unsafe_parent);
+								BidirectionalConstructedState* c_unsafe_parent = dynamic_cast<BidirectionalConstructedState*> (unsafe_parent);
 
 								// If the transition arrives from a state that is not unsafe, so outside from |U
 								if (!c_unsafe_parent->isMarked()) {
@@ -574,18 +587,21 @@ namespace quicksc {
 					if (namesake_states.size() > 1) {
 						DEBUG_LOG("More than one state with the same extension \"%s\" has been found", nfa_l_closure_name.c_str());
 
-						ConstructedState* min_dist_state;
-						ConstructedState* max_dist_state;
+						BidirectionalConstructedState* first_state = dynamic_cast<BidirectionalConstructedState*>(namesake_states[0]);
+						BidirectionalConstructedState* second_state = dynamic_cast<BidirectionalConstructedState*>(namesake_states[1]);
 
-						if (namesake_states[0]->getDistance() < namesake_states[1]->getDistance()) {
-							min_dist_state = (ConstructedState*) namesake_states[0];
-							max_dist_state = (ConstructedState*) namesake_states[1];
+						BidirectionalConstructedState* min_dist_state;
+						BidirectionalConstructedState* max_dist_state;
+
+						if (first_state->getLevel() < second_state->getLevel()) {
+							min_dist_state = first_state;
+							max_dist_state = second_state;
 						} else {
-							min_dist_state = (ConstructedState*) namesake_states[1];
-							max_dist_state = (ConstructedState*) namesake_states[0];
+							min_dist_state = second_state;
+							max_dist_state = first_state;
 						}
 
-						DEBUG_ASSERT_TRUE( min_dist_state->getDistance() <= max_dist_state->getDistance() );
+						DEBUG_ASSERT_TRUE( min_dist_state->getLevel() <= max_dist_state->getLevel() );
 
 						DEBUG_MARK_PHASE("Copying the transitions") {
 							min_dist_state->copyAllTransitionsOf(max_dist_state);
@@ -595,26 +611,27 @@ namespace quicksc {
 						bool removed = dfa->removeState(max_dist_state);
 						DEBUG_ASSERT_TRUE( removed );
 
-						// In the list of singularity, I remove every occurrence to the state with maximum distance,
+						// In the list of singularity, I remove every occurrence to the state with maximum level,
 						// however saving the labels of the singularity that were present.
 						set<string> max_dist_singularities_labels = this->m_singularities->removeSingularitiesOfState(max_dist_state);
 
-						// For all the saved labels, if the singularity corresponding to the label is NOT present in the state with minimum distance, I add it
+						// For all the saved labels, if the singularity corresponding to the label is NOT present in the state with minimum level, I add it
 						for (string singularity_label : max_dist_singularities_labels) {
 							if (singularity_label != EPSILON && !(min_dist_state == current_singularity_state && singularity_label == current_singularity_label)) {
 								this->addSingularityToList(min_dist_state, singularity_label);
 							}
 						}
 
-						// Distance relocation procedure on all the children of the state with minimum distance, because the children acquired from the state
-						// with maximum distance must be modified
-						list<pair<State*, int>> to_be_relocated_list;
+						// Level relocation procedure on all the children of the state with minimum level, because the children acquired from the state
+						// with maximum level must be modified
+						list<pair<BidirectionalState*, int>> to_be_relocated_list;
 						for (auto &trans : min_dist_state->getExitingTransitionsRef()) {
 							for (State* child : trans.second) {
-								to_be_relocated_list.push_back(pair<State*, int>(child, min_dist_state->getDistance() + 1));
+								BidirectionalState* bidir_child = dynamic_cast<BidirectionalState*> (child);
+								to_be_relocated_list.push_back(pair<BidirectionalState*, int>(bidir_child, min_dist_state->getLevel() + 1));
 							}
 						}
-						this->runDistanceRelocation(to_be_relocated_list);
+						this->runLevelRelocation(to_be_relocated_list);
 						this->m_singularities->sort();
 
 					}
@@ -652,28 +669,28 @@ namespace quicksc {
 
 	/**
 	 * Private method.
-	 * Provides an implementation of the "Distance Relocation" procedure.
-	 * Modifies the distance of a sequence of nodes according to the values passed as argument. The modification
-	 * is then propagated on the children until the new distance is better. The propagation occurs
+	 * Provides an implementation of the "Level Relocation" procedure.
+	 * Modifies the level of a sequence of nodes according to the values passed as argument. The modification
+	 * is then propagated on the children until the new level is better. The propagation occurs
 	 * in a "width-first" way.
 	 */
-	void QuickSubsetConstruction::runDistanceRelocation(list<pair<State*, int>> relocation_sequence) {
+	void QuickSubsetConstruction::runLevelRelocation(list<pair<BidirectionalState*, int>> relocation_sequence) {
 		MEASURE_MILLISECONDS( dist_reloc_time ) {
 			while (!relocation_sequence.empty()) {
 				auto current = relocation_sequence.front();
 				relocation_sequence.pop_front();
-				State* current_state = current.first;
+				BidirectionalState* current_state = current.first;
 
-				DEBUG_LOG("Execution of \"Distance Relocation\" on the state %s", current_state->getName().c_str());
+				DEBUG_LOG("Execution of \"Level Relocation\" on the state %s", current_state->getName().c_str());
 
-				if (current_state->getDistance() > current.second) {
-					DEBUG_LOG("The distance has been reduced from %u to %u", current_state->getDistance(), current.second);
-					current_state->setDistance(current.second);
+				if (current_state->getLevel() > current.second) {
+					DEBUG_LOG("The level has been reduced from %u to %u", current_state->getLevel(), current.second);
+					current_state->setLevel(current.second);
 
 					for (auto &trans : current_state->getExitingTransitionsRef()) {
 						for (State* child : trans.second) {
-
-							relocation_sequence.push_back(pair<State*, int>(child, current.second + 1));
+							BidirectionalState* bidirectional_child = dynamic_cast<BidirectionalState*>(child);
+							relocation_sequence.push_back(pair<BidirectionalState*, int>(bidirectional_child, current.second + 1));
 						}
 					}
 				}
@@ -684,23 +701,23 @@ namespace quicksc {
 
 	/**
 	 * Private method.
-	 * Wrapper for the "runDistanceRelocation" function that requires a list of pairs (State*, int) as input.
-	 * Since more than once, inside the "Singularity Processing" algorithm, the "Distance Relocation" procedure
+	 * Wrapper for the "runLevelRelocation" function that requires a list of pairs (State*, int) as input.
+	 * Since more than once, inside the "Singularity Processing" algorithm, the "Level Relocation" procedure
 	 * is called with a single argument, this method provides a useful interface to simplify the construction
 	 * of the parameters of the call.
 	 */
-	void QuickSubsetConstruction::runDistanceRelocation(State* state, int new_distance) {
-		pair<State*, int> new_pair(state, new_distance);
-		list<pair<State*, int>> list;
+	void QuickSubsetConstruction::runLevelRelocation(BidirectionalState* state, int new_level) {
+		pair<BidirectionalState*, int> new_pair(state, new_level);
+		list<pair<BidirectionalState*, int>> list;
 		list.push_back(new_pair);
-		this->runDistanceRelocation(list);
+		this->runLevelRelocation(list);
 	}
 
 	/**
 	 * Adds a singularity to the list, taking care of the creation and the fact that there can be duplicates.
 	 * Eventually, it also signals the errors.
 	 */
-	void QuickSubsetConstruction::addSingularityToList(ConstructedState* singularity_state, string singularity_label) {
+	void QuickSubsetConstruction::addSingularityToList(BidirectionalConstructedState* singularity_state, string singularity_label) {
 		Singularity* new_singularity = new Singularity(singularity_state, singularity_label);
 		if (this->m_singularities->insert(new_singularity)) {
 			DEBUG_LOG("Adding the singularity %s to the list" , new_singularity->toString().c_str());

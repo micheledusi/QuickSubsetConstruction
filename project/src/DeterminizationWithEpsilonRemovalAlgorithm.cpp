@@ -80,6 +80,13 @@ namespace quicksc {
         return this->getRuntimeStatsValuesRef();
     }
 
+	/**
+	 * Returns the NFA passed as parameter, optionally converting its states to the proper State class.
+	*/
+	Automaton* DeterminizationWithEpsilonRemovalAlgorithm::prepareInputAutomaton(Automaton* nfa) const {
+		return this->m_determinization_algorithm->prepareInputAutomaton(nfa);
+	}
+
     /**
      * This method performs the determinization of the given NFA.
      * It uses the two algorithms passed to the constructor.

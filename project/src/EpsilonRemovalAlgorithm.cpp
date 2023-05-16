@@ -109,7 +109,7 @@ namespace quicksc {
                 }
 
                 // If the epsilon-child has no incoming transitions, it's removed
-                if (eps_child->getIncomingTransitionsCount() == 0) {
+                if (dynamic_cast<BidirectionalState*>(eps_child)->getIncomingTransitionsCount() == 0) {
                     DEBUG_LOG("\tState %s has no incoming transitions, therefore it's removed.", eps_child->getName().c_str());
                     e_nfa->removeState(eps_child);
                 }
@@ -117,7 +117,7 @@ namespace quicksc {
             }
         }
         // At the end, we update the levels
-        e_nfa->recomputeAllDistances();
+        e_nfa->recomputeAllLevels();
 
         DEBUG_ASSERT_TRUE( e_nfa->size() <= e_nfa_size );
         DEBUG_LOG("Epsilon removal algorithm completed. The new automaton has %d states.", e_nfa->size());
@@ -251,14 +251,20 @@ namespace quicksc {
                             DEBUG_LOG("\t\t\tThe transition does not exist; therefore, we add it: %s --(%s)--> %s", 
                                 state->getName().c_str(), label.c_str(), eps_grandchild->getName().c_str());
                             state->connectChild(label, eps_grandchild);
+                            
+                            // For each epsilon-parent of the current state
+                            if (!state->isBidirectional()) {
+                                // Launch an exception
+                                throw std::runtime_error("The state is not bidirectional. Cannot retrieve parents.");
+                            }
+                            BidirectionalState* bidir_state = dynamic_cast<BidirectionalState*>(state);
 
                             // Then, we need to check if state has some incoming epsilon transitions
                             // If so, we need to add its parents to the set of states to process
-                            if (state->hasIncomingTransition(EPSILON)) {
+                            if (bidir_state->hasIncomingTransition(EPSILON)) {
                                 DEBUG_LOG("\t\t\tState %s has at least one incoming epsilon transition:", state->getName().c_str());
 
-                                // For each epsilon-parent of the current state
-                                for (State* eps_parent : state->getParents(EPSILON)) {
+                                for (State* eps_parent : bidir_state->getParents(EPSILON)) {
                                     DEBUG_LOG("\t\t\tIncoming epsilon transition: %s --(%s)--> %s", eps_parent->getName().c_str(), EPSILON_PRINT, state->getName().c_str());
 
                                     // If the epsilon-parent corresponds to the current state, we skip it
@@ -303,7 +309,7 @@ namespace quicksc {
         }
         // While there are final states to process
         while (!potentially_final_states.empty()) {
-            State* final_state = potentially_final_states.front();
+            BidirectionalState* final_state = dynamic_cast<BidirectionalState*>(potentially_final_states.front());
             potentially_final_states.pop_front();
 
             // For each epsilon-parent of the current state
@@ -319,7 +325,12 @@ namespace quicksc {
         // Finally, we remove all epsilon transitions
         DEBUG_LOG("Removing all epsilon transitions.");
         for (State* eps_child : states_eps_children) {
-            for (State* eps_parent : eps_child->getParents(EPSILON)) {
+            if (!eps_child->isBidirectional()) {
+                // Launch an exception
+                throw std::runtime_error("The state is not bidirectional. Cannot retrieve parents.");
+            }
+            BidirectionalState* bidir_eps_child = dynamic_cast<BidirectionalState*>(eps_child);
+            for (State* eps_parent : bidir_eps_child->getParents(EPSILON)) {
                 DEBUG_LOG("\tRemoving the transition: %s --(%s)--> %s", eps_parent->getName().c_str(), EPSILON_PRINT, eps_child->getName().c_str());
                 eps_parent->disconnectChild(EPSILON, eps_child);
             }
@@ -327,7 +338,7 @@ namespace quicksc {
 
         DEBUG_LOG("Removing the unreachable states.");
         e_nfa->removeUnreachableStates();
-        e_nfa->recomputeAllDistances();
+        e_nfa->recomputeAllLevels();
 
         DEBUG_LOG("Returning the e-NFA.");
         return e_nfa;

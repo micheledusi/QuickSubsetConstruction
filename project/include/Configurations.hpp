@@ -32,12 +32,12 @@ namespace quicksc {
 		AutomatonSize,
 		AutomatonFinalProbability,
 		AutomatonTransitionsPercentage,
-		AutomatonMaxDistance,
-		AutomatonSafeZoneDistance,
+		AutomatonMaxLevel,
+		AutomatonSafeZoneLevel,
 
 		ActiveAutomatonPruning,
 		ActiveRemovingLabel,
-		ActiveDistanceCheckInTranslation,
+		ActiveLevelCheckInTranslation,
 
 		PrintStatistics,
 		LogStatistics,

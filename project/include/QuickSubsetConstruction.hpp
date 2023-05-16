@@ -30,9 +30,9 @@
 #define NUMBER_SINGULARITIES_TOTAL		"TOT_SING       [#] "
 #define LEVEL_SINGULARITIES_CHECKUP		"STA_SING_LEVEL [#] "
 #define LEVEL_SINGULARITIES_TOTAL		"TOT_SING_LEVEL [#] "
-#define CLONING_TIME					"CLONING_TIME   [ms]"
-#define RESTRUCTURING_TIME				"RESTRUCT_TIME  [ms]"
-#define DISTANCE_RELOCATION_TIME		"RELOC_TIME     [ms]"
+#define CLONING_TIME					"CLONING_TIME   [ns]"
+#define RESTRUCTURING_TIME				"RESTRUCT_TIME  [ns]"
+#define DISTANCE_RELOCATION_TIME		"RELOC_TIME     [ns]"
 
 #define SCALE_FACTOR_QSC 1.3
 
@@ -47,10 +47,10 @@ namespace quicksc {
 
 		void cleanInternalStatus();
 
-		void runDistanceRelocation(list<pair<State*, int>> relocation_sequence);
-		void runDistanceRelocation(State* state, int new_distance);
+		void runLevelRelocation(list<pair<BidirectionalState*, int>> relocation_sequence);
+		void runLevelRelocation(BidirectionalState* state, int new_level);
 
-		void addSingularityToList(ConstructedState* singularity_state, string singularity_label);
+		void addSingularityToList(BidirectionalConstructedState* singularity_state, string singularity_label);
 
 	public:
 		QuickSubsetConstruction(Configurations* configurations);
@@ -59,6 +59,7 @@ namespace quicksc {
 		void resetRuntimeStatsValues();
 		vector<RuntimeStat> getRuntimeStatsList();
 
+		Automaton* prepareInputAutomaton(Automaton* nfa) const;
 		Automaton* run(Automaton* nfa);
 
 	};

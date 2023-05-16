@@ -40,6 +40,7 @@ namespace quicksc {
         vector<RuntimeStat> getRuntimeStatsList();
 		map<RuntimeStat, double> getRuntimeStatsValues();
 
+		Automaton* prepareInputAutomaton(Automaton* nfa) const;
         Automaton* run(Automaton* nfa);
 
     };

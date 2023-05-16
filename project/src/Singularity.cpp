@@ -23,7 +23,7 @@ namespace quicksc {
 	/**
 	 * Constructor.
 	 */
-	Singularity::Singularity(ConstructedState* state, string label) {
+	Singularity::Singularity(BidirectionalConstructedState* state, string label) {
 		if (state == NULL) {
 			DEBUG_LOG_ERROR("Impossibile creare una singolarità con stato vuoto");
 		}
@@ -41,7 +41,7 @@ namespace quicksc {
 	/**
 	 * Getter for the state.
 	 */
-	ConstructedState* Singularity::getState() {
+	BidirectionalConstructedState* Singularity::getState() {
 		return this->m_state;
 	}
 
@@ -56,7 +56,7 @@ namespace quicksc {
 	 * Returns a string representation of the singularity.
 	 */
 	string Singularity::toString() {
-		return ("(" + this->m_state->getName() + ", " + SHOW(this->m_label) + ")\033[33m[" + std::to_string(this->m_state->getDistance()) + "]\033[0m");
+		return ("(" + this->m_state->getName() + ", " + SHOW(this->m_label) + ")\033[33m[" + std::to_string(this->m_state->getLevel()) + "]\033[0m");
 	}
 
 	/**
@@ -75,14 +75,14 @@ namespace quicksc {
 
 	/**
 	 * Comparison function between two Singularity objects, depending on:
-	 * 1) The distance of the state from the initial state of the automaton.
+	 * 1) The level of the state from the initial state of the automaton.
 	 * 2) The name of the state.
 	 * 3) The label.
 	 */
 	int Singularity::compare(const Singularity& rhs) const {
-		// Check the distance of the states
-		if (this->m_state->getDistance() == rhs.m_state->getDistance()) {
-			// Case: Distances of the states are equal
+		// Check the level of the states
+		if (this->m_state->getLevel() == rhs.m_state->getLevel()) {
+			// Case: Levels of the states are equal
 
 			// Check the names of the states
 			if (this->m_state->getName() == rhs.m_state->getName()) {
@@ -97,9 +97,9 @@ namespace quicksc {
 				return this->m_state->getName().compare(rhs.m_state->getName());
 			}
 		} else {
-			// Case: Distances of the states are different
-			// The comparison is done on the distances of the states
-			return (this->m_state->getDistance() - rhs.m_state->getDistance());
+			// Case: Levels of the states are different
+			// The comparison is done on the levels of the states
+			return (this->m_state->getLevel() - rhs.m_state->getLevel());
 		}
 	}
 
@@ -167,7 +167,7 @@ namespace quicksc {
 	 * The singularities are deleted.
 	 * Moreover, it returns all the labels that belonged to those singularities.
 	 */
-	set<string> SingularityList::removeSingularitiesOfState(ConstructedState* target_state) {
+	set<string> SingularityList::removeSingularitiesOfState(BidirectionalConstructedState* target_state) {
 		DEBUG_LOG("Printing the singularities of the list for the state %s", target_state->getName().c_str());
 		IF_DEBUG_ACTIVE(printSingularities());
 
@@ -195,7 +195,7 @@ namespace quicksc {
 	double SingularityList::getAverageLevel() {
 		double sum = 0;
 		for (auto singularity_iterator = this->m_set.begin(); singularity_iterator != this->m_set.end(); ++singularity_iterator) {
-			sum += (*singularity_iterator)->getState()->getDistance();
+			sum += (*singularity_iterator)->getState()->getLevel();
 		}
 		return sum / this->size();
 	}
@@ -205,7 +205,7 @@ namespace quicksc {
 	 * It is advisable to call this function rarely, because the sorting is not particularly efficient,
 	 * given the use of a set (which should require automatic sorting).
 	 *
-	 * There are not many other solutions, in the sense that it is possible that the singularities change internally (for the distances)
+	 * There are not many other solutions, in the sense that it is possible that the singularities change internally (for the levels)
 	 * and therefore the list must be reordered. I could have used a list with priority (logarithmic insertion and constant removal)
 	 * but the uniqueness control would still have required a <set>, which has logarithmic complexity regardless.
 	 */

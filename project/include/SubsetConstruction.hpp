@@ -24,6 +24,7 @@ namespace quicksc {
 		SubsetConstruction();
 		~SubsetConstruction();
 		
+		Automaton* prepareInputAutomaton(Automaton* nfa) const;
 		Automaton* run(Automaton* nfa);
 
 	};

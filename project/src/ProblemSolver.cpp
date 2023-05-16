@@ -14,9 +14,11 @@
 
 #include <cstdio>
 #include <list>
+#include <typeinfo>
 
-#include "Timer.hpp"
+//#define DEBUG_MODE
 #include "Debug.hpp"
+#include "Timer.hpp"
 #include "Properties.hpp"
 
 using namespace std;
@@ -79,10 +81,13 @@ namespace quicksc {
 		for (DeterminizationAlgorithm* algo : this->algorithms) {
 			algo->resetRuntimeStatsValues();
 
-			DEBUG_MARK_PHASE("Esecuzione dell'algoritmo") {
+			// Choosing the proper automaton implementation
+			Automaton* input_automaton = algo->prepareInputAutomaton(problem->getNFA());
+
+			DEBUG_MARK_PHASE("Algorithm Execution") {
 				// Construction phase
 				MEASURE_NANOSECONDS( time ) {
-					result->solutions[algo] = algo->run(problem->getNFA()); // Algorithm execution
+					result->solutions[algo] = algo->run(input_automaton); // Algorithm execution
 				}
 				// Statistics
 				result->times[algo] = time;

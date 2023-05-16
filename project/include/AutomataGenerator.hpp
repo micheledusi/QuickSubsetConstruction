@@ -46,8 +46,8 @@ namespace quicksc {
 		double m_transition_percentage;
 		double m_epsilon_probability = 0;
 		double m_final_probability;
-		double m_max_distance = UNDEFINED_VALUE;
-		double m_safe_zone_distance = UNDEFINED_VALUE;
+		double m_max_level = UNDEFINED_VALUE;
+		double m_safe_zone_level = UNDEFINED_VALUE;
 
 		unsigned int m_namesCounter = 0;
 
@@ -73,9 +73,9 @@ namespace quicksc {
 		double getTransitionPercentage();
 		double getEpsilonProbability();
 		double getFinalProbability();
-		unsigned int getMaxDistance();
-		void setMaxDistance(unsigned int max_distance);
-		unsigned int getSafeZoneDistance();
+		unsigned int getMaxLevel();
+		void setMaxLevel(unsigned int max_level);
+		unsigned int getSafeZoneLevel();
 
 		Automaton* generateAutomaton();
 		virtual Automaton* generateRandomAutomaton();
