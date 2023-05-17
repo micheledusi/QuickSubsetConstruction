@@ -43,7 +43,7 @@ namespace quicksc {
 		"EXEC_TIME      [ns]  ",	
 		"GAIN           [.]   ",	
 		"UNIT_COUNT     [#]   ",
-		"VELOCITY       [#/ns]",
+		"VELOCITY       [#/ms]",
 		"SCALE_FACTOR   [.]   ",
 		/* Skip
 		"UNIT_TIME      [ns]  ",
@@ -198,7 +198,7 @@ namespace quicksc {
 				// Uses the getter of the "UNIT_COUNT" statistic, supposing it's already computed
 				auto unit_count_getter = this->getStatGetter(UNIT_COUNT, algorithm);
 				// Returns the number of units processed per millisecond
-				return (double) (unit_count_getter(result) / result->times[algorithm]);
+				return (double) (unit_count_getter(result) * 1e6 / result->times[algorithm]);
 			};
 			break;
 
