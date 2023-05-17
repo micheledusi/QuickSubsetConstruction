@@ -81,7 +81,7 @@ namespace quicksc {
 
 			DEBUG_MARK_PHASE("Esecuzione dell'algoritmo") {
 				// Construction phase
-				MEASURE_MILLISECONDS( time ) {
+				MEASURE_NANOSECONDS( time ) {
 					result->solutions[algo] = algo->run(problem->getNFA()); // Algorithm execution
 				}
 				// Statistics

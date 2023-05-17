@@ -39,7 +39,8 @@ namespace quicksc {
 		Automaton* generateStratifiedAutomaton();					// Done
 		Automaton* generateStratifiedWithSafeZoneAutomaton();		// Done
 		Automaton* generateAcyclicAutomaton();						// Done
-		Automaton* generateDopedAutomaton();						// Done
+		Automaton* generateWeakAutomaton();							// Done
+		Automaton* generateMaslovAutomaton();						// Done
 	};
 
 } /* namespace quicksc */
