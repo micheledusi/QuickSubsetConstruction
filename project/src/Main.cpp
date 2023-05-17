@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
 			// Algorithms for the determinization
 			DeterminizationAlgorithm* sc = new SubsetConstruction();
 			DeterminizationAlgorithm* qsc = new QuickSubsetConstruction(config);
+			DeterminizationAlgorithm* rsc = new RedundantSubsetConstruction();
 //			DeterminizationAlgorithm* esc = new EmbeddedSubsetConstruction(config);
 //			DeterminizationAlgorithm* sc_with_ner = new DeterminizationWithEpsilonRemovalAlgorithm(ner, sc);
 //			DeterminizationAlgorithm* sc_with_ger = new DeterminizationWithEpsilonRemovalAlgorithm(ger, sc);
@@ -60,6 +61,7 @@ int main(int argc, char **argv) {
 
 			algorithms.push_back(sc);
 			algorithms.push_back(qsc);
+			algorithms.push_back(rsc);
 //			algorithms.push_back(esc);
 //			algorithms.push_back(sc_with_ner);
 //			algorithms.push_back(sc_with_ger);

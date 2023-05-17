@@ -19,6 +19,9 @@
 #define QSC_ABBR        "qsc"
 #define QSC_NAME        "Quick Subset Construction"
 
+#define RSC_ABBR        "rsc"
+#define RSC_NAME        "Redundant (Bidirectional) Subset Construction"
+
 #define NER_ABBR        "ner"
 #define NER_NAME        "Naive Epsilon Removal"
 #define GER_ABBR        "ger"

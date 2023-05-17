@@ -28,6 +28,17 @@ namespace quicksc {
 		Automaton* run(Automaton* nfa);
 
 	};
+
+	class RedundantSubsetConstruction : public DeterminizationAlgorithm {
+
+	public:
+		RedundantSubsetConstruction();
+		~RedundantSubsetConstruction();
+		
+		Automaton* prepareInputAutomaton(Automaton* nfa) const;
+		Automaton* run(Automaton* nfa);
+
+	};
 }
 
 #endif /* INCLUDE_SUBSETCONSTRUCTION_HPP_ */
