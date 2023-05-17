@@ -126,7 +126,7 @@ namespace quicksc {
 
 		 **************************/
 
-		MEASURE_MILLISECONDS( cloning_time ) {
+		MEASURE_NANOSECONDS( cloning_time ) {
 
 			// Iterating on all the states of the input automaton to create the corresponding states
 			for (State* nfa_state : nfa->getStatesVector()) {
@@ -238,7 +238,7 @@ namespace quicksc {
 
 		double singularities_level_sum = 0;	// Auxiliary variable used to compute the average level of the singularities
 
-		MEASURE_MILLISECONDS(restructuring_time) {
+		MEASURE_NANOSECONDS(restructuring_time) {
 
 			/***** SCENARIO S_0 (ZERO) *****/
 
@@ -675,7 +675,7 @@ namespace quicksc {
 	 * in a "width-first" way.
 	 */
 	void QuickSubsetConstruction::runLevelRelocation(list<pair<BidirectionalState*, int>> relocation_sequence) {
-		MEASURE_MILLISECONDS( dist_reloc_time ) {
+		MEASURE_NANOSECONDS( dist_reloc_time ) {
 			while (!relocation_sequence.empty()) {
 				auto current = relocation_sequence.front();
 				relocation_sequence.pop_front();
